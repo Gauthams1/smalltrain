@@ -4,14 +4,17 @@ import sys
 import os
 
 import ggutils.s3_access as s3_access
+import ggutils.gg_verbosity.GGVerbosePrinting as GGVprint
 
 import smalltrain as st
 
+GGPrint = GGVprint(2)
+
 try:
     # For the case smalltrain is installed as Python library
-    print('try to load smalltrain modules from Python library')
+    GGPrint.print('try to load smalltrain modules from Python library')
     from smalltrain.model.nn_model import NNModel
-    print('smalltrain modules are ready to be loaded from Python library')
+    GGPrint.print('smalltrain modules are ready to be loaded from Python library')
 except ModuleNotFoundError:
     if os.environ.get('SMALLTRAIN_HOME'):
         # For the case the environmental value SMALLTRAIN_HOME is exported
@@ -20,10 +23,10 @@ except ModuleNotFoundError:
     else:
         # Try to load smalltrain modules from current directory
         _smalltrain_home_path = './'
-    print('try to load smalltrain modules from the path: {}'.format(_smalltrain_home_path))
+    GGPrint.print('try to load smalltrain modules from the path: {}'.format(_smalltrain_home_path))
     sys.path.append(_smalltrain_home_path)
     from smalltrain.model.nn_model import NNModel
-    print('smalltrain modules are ready to be loaded from the path: {}'.format(_smalltrain_home_path))
+    GGPrint.print('smalltrain modules are ready to be loaded from the path: {}'.format(_smalltrain_home_path))
 
 def get_model_list():
     from smalltrain.model.one_dim_cnn_model import OneDimCNNModel
@@ -62,7 +65,7 @@ class Operation:
     def __init__(self, hparams=None, setting_file_path=None):
         self._hparam_ins = st.Hyperparameters(hparams, setting_file_path)
         self.hparams_dict = self._hparam_ins.__dict__
-        print('init hparams_dict: {}'.format(self.hparams_dict))
+        GGPrint.print('init hparams_dict: {}'.format(self.hparams_dict))
 
     def get_hparams_ins(self):
         return self._hparam_ins
@@ -127,16 +130,16 @@ class Operation:
         # self.operation_file_path = operation_file_path
 
         if self.hparams_dict['cloud_root'] is not None:
-            print('Upload the hparams to cloud: {}'.format(self.hparams_dict['cloud_root']))
+            GGPrint.print('Upload the hparams to cloud: {}'.format(self.hparams_dict['cloud_root']))
             upload_to_cloud(operation_file_path, self.hparams_dict['cloud_root'], self.hparams_dict['save_root_dir'])
 
-        print('[Operation]DONE prepare_dirs')
+        GGPrint.print('[Operation]DONE prepare_dirs')
 
     def construct_and_prepare_model(self, hparams=None, train_data=None):
 
         hparams = hparams or self.hparams_dict
         model_id = hparams['model_id']
-        print('construct_and_prepare_model with model_id: {}'.format(model_id))
+        GGPrint.print('construct_and_prepare_model with model_id: {}'.format(model_id))
         if model_id in MODEL_ID_LIST:
             for _m in MODEL_LIST:
                 if _m.MODEL_ID == model_id:
@@ -157,40 +160,40 @@ class Operation:
                     batch_size=hparams['batch_size'], dropout_ratio=hparams['dropout_ratio'],
                     l1_norm_reg_ratio=hparams['l1_norm_reg_ratio'], save_file_path=hparams['save_file_path'],
                     report_dir_path=hparams['report_dir_path'])
-        print('DONE train data ')
-        print('====================')
+        GGPrint.print('DONE train data ')
+        GGPrint.print('====================')
 
     def auto(self, hparams=None, setting_file_path=None):
 
-        print('====================')
-        print('TODO auto operation with hyper parameter: ')
-        print(self.hparams_dict)
-        print('====================')
+        GGPrint.print('====================')
+        GGPrint.print('TODO auto operation with hyper parameter: ')
+        GGPrint.print(self.hparams_dict)
+        GGPrint.print('====================')
         self.prepare_dirs()
-        print('DONE prepare_dirs')
-        print('====================')
-        print('TODO construct_and_prepare_model')
+        GGPrint.print('DONE prepare_dirs')
+        GGPrint.print('====================')
+        GGPrint.print('TODO construct_and_prepare_model')
         self.construct_and_prepare_model()
-        print('DONE construct_and_prepare_model')
-        print('====================')
+        GGPrint.print('DONE construct_and_prepare_model')
+        GGPrint.print('====================')
         if (not self.hparams_dict.get('prediction_mode')):
-            print('TODO train( or test only)')
+            GGPrint.print('TODO train( or test only)')
             self.train()
-            print('DONE train( or test only)')
-            print('====================')
-        print('DONE auto operation')
-        print('====================')
+            GGPrint.print('DONE train( or test only)')
+            GGPrint.print('====================')
+        GGPrint.print('DONE auto operation')
+        GGPrint.print('====================')
 
 
 def main(exec_param):
-    print(exec_param)
+    GGPrint.print(exec_param)
     operation = Operation(setting_file_path=exec_param['setting_file_path'])
     operation.auto()
 
 
 def _main(exec_param):
 
-    print(exec_param)
+    GGPrint.print(exec_param)
 
     operation = Operation()
 
@@ -200,7 +203,7 @@ def _main(exec_param):
         operation.update_hyper_param_from_json(exec_param['json_param'])
 
     exec_param = operation.hparams_dict
-    print('updated exec_param:{}'.format(exec_param))
+    GGPrint.print('updated exec_param:{}'.format(exec_param))
 
     #  prepare directories
     operation.prepare_dirs()
@@ -214,15 +217,15 @@ def _main(exec_param):
 
     model = None
 
-    print('====================')
-    print('TODO train data ')
+    GGPrint.print('====================')
+    GGPrint.print('TODO train data ')
 
     if model is None:
         model = operation.construct_and_prepare_model()
 
     operation.train()
-    print('DONE train data ')
-    print('====================')
+    GGPrint.print('DONE train data ')
+    GGPrint.print('====================')
 
 
 from pathlib import Path
@@ -243,7 +246,7 @@ def download_to_local(path, work_dir_path='/var/tmp/tsp/'):
 import multiprocessing
 def upload_to_cloud(local_path, cloud_root, local_root, with_multiprocessing=True):
     if local_path is None:
-        print('No file to upload_to_cloud:local_path:{}'.format(local_path))
+        GGPrint.print('No file to upload_to_cloud:local_path:{}'.format(local_path))
         return
 
     s3_bucket_name, s3_root_key = get_bucket_name(cloud_root)
@@ -252,7 +255,7 @@ def upload_to_cloud(local_path, cloud_root, local_root, with_multiprocessing=Tru
     if len(local_path.split(local_root)[0]) > 0:
         raise ValueError('Invalid local_path:{} or local_root:{}'.format(local_path, local_root))
     local_path_from_local_root = local_path.split(local_root)[1]
-    # print('local_path_from_local_root:{}'.format(local_path_from_local_root))
+    # GGPrint.print('local_path_from_local_root:{}'.format(local_path_from_local_root))
     s3_key = os.path.join(s3_root_key, local_path_from_local_root)
 
     local_dir = Path(local_path).parent
@@ -283,14 +286,14 @@ def get_bucket_name(s3_path):
         s3_key = _split[1][1 + len(s3_bucket_name):]
         return s3_bucket_name, s3_key
     except IndexError as e:
-        print('Can not read s3_bucket_name or s3_key from s3_path:{}'.format(s3_path))
+        GGPrint.print('Can not read s3_bucket_name or s3_key from s3_path:{}'.format(s3_path))
         return None, None
 
 def test_download_to_local():
     path = 's3://your-bucket/tsp/sample/sample.json'
     download_path = download_to_local(path)
     has_downloaded = os.path.isfile(download_path)
-    print('[test_download_to_local]from:{}, to:{} has_downloaded:{}'.format(path, download_path, has_downloaded))
+    GGPrint.print('[test_download_to_local]from:{}, to:{} has_downloaded:{}'.format(path, download_path, has_downloaded))
     assert has_downloaded
 
 def test_upload_to_cloud():
@@ -306,10 +309,10 @@ def test_static_methods():
     test_upload_to_cloud()
     exit()
     test_download_to_local()
-    print('Done test_static_methods')
+    GGPrint.print('Done test_static_methods')
 
 def main_with_train_id(train_id):
-    print('TODO')
+    GGPrint.print('TODO')
 
 
 import json
@@ -587,9 +590,9 @@ if __name__ == '__main__':
                         help='Boolean, scrpit_test')
 
     args = parser.parse_args()
-    print('args:{}'.format(args))
+    GGPrint.print('args:{}'.format(args))
 
     exec_param = vars(args)
-    print('init exec_param:{}'.format(args))
+    GGPrint.print('init exec_param:{}'.format(args))
 
     main(exec_param)
