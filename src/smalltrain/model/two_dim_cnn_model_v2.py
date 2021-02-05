@@ -29,7 +29,9 @@ import ggutils.s3_access as s3_access
 
 from tensorflow.python.framework import ops
 from tensorflow.python.ops import math_ops
+from ggutils.gg_verbosity import GGVerbosePrinting
 
+GGPrint = GGVerbosePrinting(2)
 
 
 class TwoDimCNNModelV2(TwoDimCNNModel):
@@ -44,14 +46,14 @@ class TwoDimCNNModelV2(TwoDimCNNModel):
     def pool_residual(self, x, pool):
         pooled_residual = tf.nn.avg_pool(x, ksize=[1, pool, pool, 1],
                                     strides=[1, pool, pool, 1], padding='SAME')
-        print('{} pooled_residual shape:{}'.format(self.MODEL_ID, pooled_residual.shape))
+        GGPrint.print('{} pooled_residual shape:{}'.format(self.MODEL_ID, pooled_residual.shape))
         return pooled_residual
 
     def pad_residual(self, x, pad_channel_size):
 
         pad_before = pad_channel_size // 2
         pad_after = pad_channel_size - pad_before
-        print('pad_channel_size:{}, pad_before:{}, padd_after:{}'.format(pad_channel_size, pad_before, pad_after))
+        GGPrint.print('pad_channel_size:{}, pad_before:{}, padd_after:{}'.format(pad_channel_size, pad_before, pad_after))
         padded_residual = tf.pad(x, [[0, 0], [0, 0], [0, 0], [pad_before, pad_after]])
-        print('{} padded_residual shape:{}'.format(self.MODEL_ID, padded_residual.shape))
+        GGPrint.print('{} padded_residual shape:{}'.format(self.MODEL_ID, padded_residual.shape))
         return padded_residual

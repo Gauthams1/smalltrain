@@ -28,7 +28,9 @@ import ggutils.s3_access as s3_access
 
 from tensorflow.python.framework import ops
 from tensorflow.python.ops import math_ops
+from ggutils.gg_verbosity import GGVerbosePrinting
 
+GGPrint = GGVerbosePrinting(2)
 
 
 class OneDimCNNModel(NNModel):
@@ -44,7 +46,7 @@ class OneDimCNNModel(NNModel):
                             hparams=None):
 
         PREFIX = '[OneDimCNNModel]'
-        print('{}__init__'.format(PREFIX))
+        GGPrint.print('{}__init__'.format(PREFIX))
 
         self.debug_mode = debug_mode
         # update by hparams
@@ -54,27 +56,27 @@ class OneDimCNNModel(NNModel):
 
         self.model_type = 'CLASSIFICATION'
         if hparams and 'model_type' in hparams.keys():
-            print('{}Use model_type in hparams:{}'.format(PREFIX, hparams['model_type']))
+            GGPrint.print('{}Use model_type in hparams:{}'.format(PREFIX, hparams['model_type']))
             self.model_type = hparams['model_type']
         else:
-            print('{}TODO Use ts_start with default value:{}'.format(PREFIX, self.model_type))
+            GGPrint.print('{}TODO Use ts_start with default value:{}'.format(PREFIX, self.model_type))
         self.prediction_mode = prediction_mode
 
         # about optimizer
 
         self.optimizer = 'AdamOptimizer' # Default Optimizer
         if hparams and 'optimizer' in hparams.keys():
-            print('{}Use optimizer in hparams:{}'.format(PREFIX, hparams['optimizer']))
+            GGPrint.print('{}Use optimizer in hparams:{}'.format(PREFIX, hparams['optimizer']))
             self.optimizer = hparams['optimizer']
         if self.optimizer is None or self.optimizer not in NNModel.AVAILABLE_OPTIMIZER_LIST:
             self.optimizer = NNModel.DEFAULT_OPTIMIZER
-            print('{}Use optimizer with default value:{}'.format(PREFIX, self.optimizer))
+            GGPrint.print('{}Use optimizer with default value:{}'.format(PREFIX, self.optimizer))
 
         self.l1_norm = 0
         # whether add l1_norm_reg or not
         self.add_l1_norm_reg = False
         if hparams and 'add_l1_norm_reg' in hparams.keys():
-            print('{}Use add_l1_norm_reg in hparams:{}'.format(PREFIX, hparams['add_l1_norm_reg']))
+            GGPrint.print('{}Use add_l1_norm_reg in hparams:{}'.format(PREFIX, hparams['add_l1_norm_reg']))
             self.add_l1_norm_reg = hparams['add_l1_norm_reg']
         if self.add_l1_norm_reg is None:
             self.add_l1_norm_reg = False
@@ -83,36 +85,36 @@ class OneDimCNNModel(NNModel):
         self.preactivation_regularization_value = 0.0
         self.add_preactivation_regularization = False
         if hparams and 'add_preactivation_regularization' in hparams.keys():
-            print('{}Use add_preactivation_regularization in hparams:{}'.format(PREFIX, hparams['add_preactivation_regularization']))
+            GGPrint.print('{}Use add_preactivation_regularization in hparams:{}'.format(PREFIX, hparams['add_preactivation_regularization']))
             self.add_preactivation_regularization = hparams['add_preactivation_regularization']
         if self.add_preactivation_regularization is None:
             self.add_preactivation_regularization = False
 
         self.preactivation_regularization_value_ratio = 0.0
         if hparams and 'preactivation_regularization_value_ratio' in hparams.keys():
-            print('{}Use preactivation_regularization_value_ratio in hparams:{}'.format(PREFIX, hparams['preactivation_regularization_value_ratio']))
+            GGPrint.print('{}Use preactivation_regularization_value_ratio in hparams:{}'.format(PREFIX, hparams['preactivation_regularization_value_ratio']))
             self.preactivation_regularization_value_ratio = hparams['preactivation_regularization_value_ratio']
             try:
                 self.preactivation_regularization_value_ratio = np.float32(self.preactivation_regularization_value_ratio)
             except ValueError:
                 self.preactivation_regularization_value_ratio = 0.0
-                print('{}Use preactivation_regularization_value_ratio with default value:{}'.format(PREFIX, self.preactivation_regularization_value_ratio))
+                GGPrint.print('{}Use preactivation_regularization_value_ratio with default value:{}'.format(PREFIX, self.preactivation_regularization_value_ratio))
         else:
-            print('{}Use preactivation_regularization_value_ratio with default value:{}'.format(PREFIX, self.preactivation_regularization_value_ratio))
+            GGPrint.print('{}Use preactivation_regularization_value_ratio with default value:{}'.format(PREFIX, self.preactivation_regularization_value_ratio))
 
 
         # self.preactivation_maxout_list = [300.0, 200.0, 54.0, 18.0, 6.0, 18.0, 54.0, 200.0, 300.0, 300.0, 300.0]
         self.preactivation_maxout_list = None
         if hparams and 'preactivation_maxout_list' in hparams.keys():
-            print('{}Use preactivation_maxout_list in hparams:{}'.format(PREFIX, hparams['preactivation_maxout_list']))
+            GGPrint.print('{}Use preactivation_maxout_list in hparams:{}'.format(PREFIX, hparams['preactivation_maxout_list']))
             self.preactivation_maxout_list = hparams['preactivation_maxout_list']
             try:
                 assert len(self.preactivation_maxout_list) > 0
             except (AssertionError, TypeError):
                 self.preactivation_maxout_list = None
-                print('{}Use preactivation_maxout_list with default value:{}'.format(PREFIX, self.preactivation_maxout_list))
+                GGPrint.print('{}Use preactivation_maxout_list with default value:{}'.format(PREFIX, self.preactivation_maxout_list))
         else:
-            print('{}Use preactivation_maxout_list with default value:{}'.format(PREFIX, self.preactivation_maxout_list))
+            GGPrint.print('{}Use preactivation_maxout_list with default value:{}'.format(PREFIX, self.preactivation_maxout_list))
 
         self.train_data = train_data
 
@@ -130,113 +132,113 @@ class OneDimCNNModel(NNModel):
 
         # (For compatibility with ver0.1.1 ```input_ts_size``` and ver0.1.2 ```input_ts_width``` )
         if hparams and 'input_ts_size' in hparams.keys():
-            print('{}Use input_ts_size in hparams:{}'.format(PREFIX, hparams['input_ts_size']))
+            GGPrint.print('{}Use input_ts_size in hparams:{}'.format(PREFIX, hparams['input_ts_size']))
             self.input_ts_size = hparams['input_ts_size']
         else:
-            print('{}TODO Use input_ts_size with default value'.format(PREFIX))
+            GGPrint.print('{}TODO Use input_ts_size with default value'.format(PREFIX))
 
         self.input_ts_width = self.input_ts_size # (For compatibility with ver0.1.1 ```input_ts_size``` and ver0.1.2 ```input_ts_width``` )
         if hparams and 'input_ts_width' in hparams.keys():
-            print('{}Use input_ts_width in hparams:{}'.format(PREFIX, hparams['input_ts_width']))
+            GGPrint.print('{}Use input_ts_width in hparams:{}'.format(PREFIX, hparams['input_ts_width']))
             self.input_ts_width = hparams['input_ts_width']
         else:
-            print('{}TODO Use input_ts_width with default value'.format(PREFIX))
+            GGPrint.print('{}TODO Use input_ts_width with default value'.format(PREFIX))
 
         if self.input_ts_width is None:
             self.input_ts_width = self.input_ts_size  # (For compatibility with ver0.1.1 ```input_ts_size``` and ver0.1.2 ```input_ts_width``` )
-            print('{}Use input_ts_width same as input_ts_size:{}'.format(PREFIX, self.input_ts_width))
+            GGPrint.print('{}Use input_ts_width same as input_ts_size:{}'.format(PREFIX, self.input_ts_width))
 
         self.input_width = self.input_ts_width
 
         if hparams and 'n_layer' in hparams.keys():
-            print('{}Use n_layer in hparams:{}'.format(PREFIX, hparams['n_layer']))
+            GGPrint.print('{}Use n_layer in hparams:{}'.format(PREFIX, hparams['n_layer']))
             self.n_layer = hparams['n_layer']
         else:
-            print('{}TODO Use n_layer with default value'.format(PREFIX))
+            GGPrint.print('{}TODO Use n_layer with default value'.format(PREFIX))
 
         self.filter_width = 5
         if hparams and 'filter_width' in hparams.keys():
-            print('{}Use filter_width in hparams:{}'.format(PREFIX, hparams['filter_width']))
+            GGPrint.print('{}Use filter_width in hparams:{}'.format(PREFIX, hparams['filter_width']))
             self.filter_width = hparams['filter_width']
         else:
-            print('{}Use filter_width with default value:{}'.format(PREFIX, self.filter_width))
+            GGPrint.print('{}Use filter_width with default value:{}'.format(PREFIX, self.filter_width))
 
         self.cnn_channel_size = 4
         if hparams and 'cnn_channel_size' in hparams.keys():
-            print('{}Use cnn_channel_size in hparams:{}'.format(PREFIX, hparams['cnn_channel_size']))
+            GGPrint.print('{}Use cnn_channel_size in hparams:{}'.format(PREFIX, hparams['cnn_channel_size']))
             self.cnn_channel_size = hparams['cnn_channel_size']
         else:
-            print('{}TODO Use cnn_channel_size with default value'.format(PREFIX))
+            GGPrint.print('{}TODO Use cnn_channel_size with default value'.format(PREFIX))
 
         self.cnn_channel_size_list = None
         if hparams and 'cnn_channel_size_list' in hparams.keys():
-            print('{}Use cnn_channel_size_list in hparams:{}'.format(PREFIX, hparams['cnn_channel_size_list']))
+            GGPrint.print('{}Use cnn_channel_size_list in hparams:{}'.format(PREFIX, hparams['cnn_channel_size_list']))
             self.cnn_channel_size_list = hparams['cnn_channel_size_list']
         else:
-            print('{}Use cnn_channel_size with default value:{}'.format(PREFIX, self.cnn_channel_size_list))
+            GGPrint.print('{}Use cnn_channel_size with default value:{}'.format(PREFIX, self.cnn_channel_size_list))
 
         self.pool_size_list = None
         if hparams and 'pool_size_list' in hparams.keys():
-            print('{}Use pool_size_list in hparams:{}'.format(PREFIX, hparams['pool_size_list']))
+            GGPrint.print('{}Use pool_size_list in hparams:{}'.format(PREFIX, hparams['pool_size_list']))
             self.pool_size_list = hparams['pool_size_list']
         if self.pool_size_list is None:
             self.pool_size_list = np.ones([self.n_layer], dtype="int32")
             self.pool_size_list[0:1] = 2
-            print('{}Use pool_size_list with default value:{}'.format(PREFIX, self.pool_size_list))
+            GGPrint.print('{}Use pool_size_list with default value:{}'.format(PREFIX, self.pool_size_list))
 
         self.act_func_list = None
 
         if hparams and 'act_func_list' in hparams.keys():
-            print('{}Use act_func_list in hparams:{}'.format(PREFIX, hparams['act_func_list']))
+            GGPrint.print('{}Use act_func_list in hparams:{}'.format(PREFIX, hparams['act_func_list']))
             self.act_func_list = hparams['act_func_list']
         if self.act_func_list is None:
             self.act_func_list = np.repeat(NNModel.DEFAULT_ACT_FUNC_KEY, [self.n_layer - 1])
-            print('{}Use act_func_list with default value:{}'.format(PREFIX, self.act_func_list))
+            GGPrint.print('{}Use act_func_list with default value:{}'.format(PREFIX, self.act_func_list))
         self.act_func_ref_list = self.set_act_func_ref_list(self.act_func_list, self.n_layer)
-        print('{}act_func_ref_list is set :{}'.format(PREFIX, self.act_func_ref_list))
+        GGPrint.print('{}act_func_ref_list is set :{}'.format(PREFIX, self.act_func_ref_list))
 
         self.test_only_mode = False
         if hparams and 'test_only_mode' in hparams.keys():
-            print('{}Use test_only_mode in hparams:{}'.format(PREFIX, hparams['test_only_mode']))
+            GGPrint.print('{}Use test_only_mode in hparams:{}'.format(PREFIX, hparams['test_only_mode']))
             self.test_only_mode = hparams['test_only_mode']
         else:
-            print('{}TODO Use test_only_mode with default value:{}'.format(PREFIX, self.test_only_mode))
+            GGPrint.print('{}TODO Use test_only_mode with default value:{}'.format(PREFIX, self.test_only_mode))
 
         # whether has ResNet or not
         self.has_res_net = False
         if hparams and 'has_res_net' in hparams.keys():
-            print('{}Use has_res_net in hparams:{}'.format(PREFIX, hparams['has_res_net']))
+            GGPrint.print('{}Use has_res_net in hparams:{}'.format(PREFIX, hparams['has_res_net']))
             self.has_res_net = hparams['has_res_net']
         else:
-            print('{}Use has_res_net with default value:{}'.format(PREFIX, self.has_res_net))
+            GGPrint.print('{}Use has_res_net with default value:{}'.format(PREFIX, self.has_res_net))
 
         # about batch normalization
         self.has_batch_norm = True
         if hparams and 'has_batch_norm' in hparams.keys():
-            print('{}Use has_batch_norm in hparams:{}'.format(PREFIX, hparams['has_batch_norm']))
+            GGPrint.print('{}Use has_batch_norm in hparams:{}'.format(PREFIX, hparams['has_batch_norm']))
             self.has_batch_norm = hparams['has_batch_norm']
         else:
-            print('{}TODO Use has_batch_norm with default value:{}'.format(PREFIX, self.has_batch_norm))
+            GGPrint.print('{}TODO Use has_batch_norm with default value:{}'.format(PREFIX, self.has_batch_norm))
 
         if self.has_batch_norm:
             self.bn_decay = NNModel.DEFAULT_BN_DECAY
 
             if hparams and 'bn_decay' in hparams.keys():
-                print('{}Use bn_decay in hparams:{}'.format(PREFIX, hparams['bn_decay']))
+                GGPrint.print('{}Use bn_decay in hparams:{}'.format(PREFIX, hparams['bn_decay']))
                 self.bn_decay = hparams['bn_decay']
             else:
-                print('{}TODO Use bn_decay with default value:{}'.format(PREFIX, self.bn_decay))
+                GGPrint.print('{}TODO Use bn_decay with default value:{}'.format(PREFIX, self.bn_decay))
 
             self.bn_eps = NNModel.DEFAULT_BN_ESP
             if hparams and 'bn_eps' in hparams.keys():
-                print('{}Use bn_eps in hparams:{}'.format(PREFIX, hparams['bn_eps']))
+                GGPrint.print('{}Use bn_eps in hparams:{}'.format(PREFIX, hparams['bn_eps']))
                 self.bn_eps = hparams['bn_eps']
             else:
-                print('{}TODO Use bn_eps with default value:{}'.format(PREFIX, self.bn_eps))
+                GGPrint.print('{}TODO Use bn_eps with default value:{}'.format(PREFIX, self.bn_eps))
 
         self.annotation_col_names = None
         if hparams and 'annotation_col_names' in hparams.keys():
-            print('{}Use annotation_col_names in hparams:{}'.format(PREFIX, hparams['annotation_col_names']))
+            GGPrint.print('{}Use annotation_col_names in hparams:{}'.format(PREFIX, hparams['annotation_col_names']))
             self.annotation_col_names = hparams['annotation_col_names']
 
         self.annotation_col_size = 0
@@ -246,96 +248,96 @@ class OneDimCNNModel(NNModel):
         # about mask_rate
         self.mask_rate = None
         if hparams and 'mask_rate' in hparams.keys():
-            print('{}Use mask_rate in hparams:{}'.format(PREFIX, hparams['mask_rate']))
+            GGPrint.print('{}Use mask_rate in hparams:{}'.format(PREFIX, hparams['mask_rate']))
             self.mask_rate = hparams['mask_rate']
         if self.mask_rate is not None:
             try:
                 self.mask_rate = float(self.mask_rate)
             except ValueError:
-                print('{}mask_rate is not float type. reset with None'.format(PREFIX))
+                GGPrint.print('{}mask_rate is not float type. reset with None'.format(PREFIX))
                 self.mask_rate = None
 
         # output_data_names
         if hparams and 'output_data_names' in hparams.keys():
-            print('{}Use output_data_names in hparams:{}'.format(PREFIX, hparams['output_data_names']))
+            GGPrint.print('{}Use output_data_names in hparams:{}'.format(PREFIX, hparams['output_data_names']))
             self.output_data_names = hparams['output_data_names']
         if self.output_data_names is not None:
             try:
                 if not isinstance(self.output_data_names, list):
                     raise ValueError
-                print('output_data_names size:{}'.format(len(self.output_data_names)))
+                GGPrint.print('output_data_names size:{}'.format(len(self.output_data_names)))
             except ValueError:
-                print('{}output_data_names is not list type. reset with None'.format(PREFIX))
+                GGPrint.print('{}output_data_names is not list type. reset with None'.format(PREFIX))
                 self.output_data_names = None
 
 
         self.restore_var_name_list = None
         if hparams and 'restore_var_name_list' in hparams.keys():
-            print('{}Use restore_var_name_list in hparams:{}'.format(PREFIX, hparams['restore_var_name_list']))
+            GGPrint.print('{}Use restore_var_name_list in hparams:{}'.format(PREFIX, hparams['restore_var_name_list']))
             self.restore_var_name_list = hparams['restore_var_name_list']
 
         self.untrainable_var_name_list = None
         if hparams and 'untrainable_var_name_list' in hparams.keys():
-            print('{}Use untrainable_var_name_list in hparams:{}'.format(PREFIX, hparams['untrainable_var_name_list']))
+            GGPrint.print('{}Use untrainable_var_name_list in hparams:{}'.format(PREFIX, hparams['untrainable_var_name_list']))
             self.untrainable_var_name_list = hparams['untrainable_var_name_list']
 
         # plot settings
         self.plot_x_label = None
         if hparams and 'plot_x_label' in hparams.keys():
-            print('{}Use plot_x_label in hparams:{}'.format(PREFIX, hparams['plot_x_label']))
+            GGPrint.print('{}Use plot_x_label in hparams:{}'.format(PREFIX, hparams['plot_x_label']))
             self.plot_x_label = hparams['plot_x_label']
         self.plot_y_label = None
         if hparams and 'plot_y_label' in hparams.keys():
-            print('{}Use plot_y_label in hparams:{}'.format(PREFIX, hparams['plot_y_label']))
+            GGPrint.print('{}Use plot_y_label in hparams:{}'.format(PREFIX, hparams['plot_y_label']))
             self.plot_y_label = hparams['plot_y_label']
         self.plot_x_data_name_in_annotation = None
         if hparams and 'plot_x_data_name_in_annotation' in hparams.keys():
-            print('{}Use plot_x_data_name_in_annotation in hparams:{}'.format(PREFIX, hparams['plot_x_data_name_in_annotation']))
+            GGPrint.print('{}Use plot_x_data_name_in_annotation in hparams:{}'.format(PREFIX, hparams['plot_x_data_name_in_annotation']))
             self.plot_x_data_name_in_annotation = hparams['plot_x_data_name_in_annotation']
         self.plot_group_data_name_in_annotation = None
         if hparams and 'plot_group_data_name_in_annotation' in hparams.keys():
-            print('{}Use plot_group_data_name_in_annotation in hparams:{}'.format(PREFIX, hparams['plot_group_data_name_in_annotation']))
+            GGPrint.print('{}Use plot_group_data_name_in_annotation in hparams:{}'.format(PREFIX, hparams['plot_group_data_name_in_annotation']))
             self.plot_group_data_name_in_annotation = hparams['plot_group_data_name_in_annotation']
         self.plot_x_range = None
         if hparams and 'plot_x_range' in hparams.keys():
-            print('{}Use plot_x_range in hparams:{}'.format(PREFIX, hparams['plot_x_range']))
+            GGPrint.print('{}Use plot_x_range in hparams:{}'.format(PREFIX, hparams['plot_x_range']))
             self.plot_x_range = hparams['plot_x_range']
         self.plot_y_range = None
         if hparams and 'plot_y_range' in hparams.keys():
-            print('{}Use plot_y_range in hparams:{}'.format(PREFIX, hparams['plot_y_range']))
+            GGPrint.print('{}Use plot_y_range in hparams:{}'.format(PREFIX, hparams['plot_y_range']))
             self.plot_y_range = hparams['plot_y_range']
         self.plot_title = None
         if hparams and 'plot_title' in hparams.keys():
-            print('{}Use plot_title in hparams:{}'.format(PREFIX, hparams['plot_title']))
+            GGPrint.print('{}Use plot_title in hparams:{}'.format(PREFIX, hparams['plot_title']))
             self.plot_title = hparams['plot_title']
         self.plot_errors = None
         if hparams and 'plot_errors' in hparams.keys():
-            print('{}Use plot_errors in hparams:{}'.format(PREFIX, hparams['plot_errors']))
+            GGPrint.print('{}Use plot_errors in hparams:{}'.format(PREFIX, hparams['plot_errors']))
             self.plot_errors = hparams['plot_errors']
         self.plot_animation = False
         if hparams and 'plot_animation' in hparams.keys():
-            print('{}Use plot_animation in hparams:{}'.format(PREFIX, hparams['plot_animation']))
+            GGPrint.print('{}Use plot_animation in hparams:{}'.format(PREFIX, hparams['plot_animation']))
             self.plot_animation = hparams['plot_animation']
         if self.plot_animation is None:
             self.plot_animation = False
-            print('{}Use plot_animation with default value:{}'.format(PREFIX, self.plot_animation))
+            GGPrint.print('{}Use plot_animation with default value:{}'.format(PREFIX, self.plot_animation))
         self.calc_cc_errors = False
         if hparams and 'calc_cc_errors' in hparams.keys():
-            print('{}Use calc_cc_errors in hparams:{}'.format(PREFIX, hparams['calc_cc_errors']))
+            GGPrint.print('{}Use calc_cc_errors in hparams:{}'.format(PREFIX, hparams['calc_cc_errors']))
             self.calc_cc_errors = hparams['calc_cc_errors']
         if self.calc_cc_errors is None:
             self.calc_cc_errors = False
-            print('{}Use calc_cc_errors with default value:{}'.format(PREFIX, self.calc_cc_errors))
+            GGPrint.print('{}Use calc_cc_errors with default value:{}'.format(PREFIX, self.calc_cc_errors))
 
         self.op_errors = None
         if hparams and 'op_errors' in hparams.keys():
-            print('{}Use op_errors in hparams:{}'.format(PREFIX, hparams['op_errors']))
+            GGPrint.print('{}Use op_errors in hparams:{}'.format(PREFIX, hparams['op_errors']))
             self.op_errors = hparams['op_errors']
 
         # rank_boundary_list
         self.rank_boundary_list = None
         if hparams and 'rank_boundary_list' in hparams.keys():
-            print('{}Use rank_boundary_list in hparams:{}'.format(PREFIX, hparams['rank_boundary_list']))
+            GGPrint.print('{}Use rank_boundary_list in hparams:{}'.format(PREFIX, hparams['rank_boundary_list']))
             self.rank_boundary_list = hparams['rank_boundary_list']
             if self.rank_boundary_list is not None:
                 # check the members of rank_boundary_list
@@ -347,44 +349,44 @@ class OneDimCNNModel(NNModel):
                         assert len(rank_boundary) > 1
                         lower = rank_boundary[0]
                         upper = rank_boundary[1]
-                        print('{}rank_boundary lower:{}, func:{}'.format(PREFIX, lower, upper))
+                        GGPrint.print('{}rank_boundary lower:{}, func:{}'.format(PREFIX, lower, upper))
                     except Exception as e:
-                        print('{}No rank_boundary_list is set because of error {} on invalid parameter:{}'.format(PREFIX, e, rank_boundary))
+                        GGPrint.print('{}No rank_boundary_list is set because of error {} on invalid parameter:{}'.format(PREFIX, e, rank_boundary))
         else:
-            print('{}No rank_boundary_list is set'.format(PREFIX))
+            GGPrint.print('{}No rank_boundary_list is set'.format(PREFIX))
 
         # cloud settings
         self.cloud_root = None
         if hparams and 'cloud_root' in hparams.keys():
-            print('{}Use cloud_root in hparams:{}'.format(PREFIX, hparams['cloud_root']))
+            GGPrint.print('{}Use cloud_root in hparams:{}'.format(PREFIX, hparams['cloud_root']))
             self.cloud_root = hparams['cloud_root']
         self.prioritize_cloud = False
         if hparams and 'prioritize_cloud' in hparams.keys():
-            print('{}Use prioritize_cloud in hparams:{}'.format(PREFIX, hparams['prioritize_cloud']))
+            GGPrint.print('{}Use prioritize_cloud in hparams:{}'.format(PREFIX, hparams['prioritize_cloud']))
             self.prioritize_cloud = hparams['prioritize_cloud']
         if self.prioritize_cloud is None:
             self.prioritize_cloud = False
-            print('{}Use prioritize_cloud with default value:{}'.format(PREFIX, self.prioritize_cloud))
+            GGPrint.print('{}Use prioritize_cloud with default value:{}'.format(PREFIX, self.prioritize_cloud))
 
         # local setting
 
         self.save_root_dir = '/var/tensorflow/tsp/'
         if hparams and 'save_root_dir' in hparams.keys():
-            print('{}Use save_root_dir in hparams:{}'.format(PREFIX, hparams['save_root_dir']))
+            GGPrint.print('{}Use save_root_dir in hparams:{}'.format(PREFIX, hparams['save_root_dir']))
             self.save_root_dir = hparams['save_root_dir']
         else:
-            print('{}TODO Use save_root_dir with default value'.format(PREFIX))
+            GGPrint.print('{}TODO Use save_root_dir with default value'.format(PREFIX))
 
         # check init model
         self.sess = tf.InteractiveSession()
         self.init_model_path = None
         if hparams and 'init_model_path' in hparams.keys():
-            print('{}Use init_model_path in hparams:{}'.format(PREFIX, hparams['init_model_path']))
+            GGPrint.print('{}Use init_model_path in hparams:{}'.format(PREFIX, hparams['init_model_path']))
             self.init_model_path = hparams['init_model_path']
         # set output_classes in CLASSIFICATION model
         self.output_classes = None
         if hparams and 'output_classes' in hparams.keys():
-            print('{}Use output_classes in hparams:{}'.format(PREFIX, hparams['output_classes']))
+            GGPrint.print('{}Use output_classes in hparams:{}'.format(PREFIX, hparams['output_classes']))
             self.output_classes = hparams['output_classes']
         # if output_classes is not set in CLASSIFICATION model, try to read from init_model_path
         if self.init_model_path is not None and self.model_type == 'CLASSIFICATION':
@@ -397,7 +399,7 @@ class OneDimCNNModel(NNModel):
         # Move to NNModel.prepare_model
         # self.sess = tf.InteractiveSession()
         # self.define_model()
-        # print('---------- time:{} DONE define_model'.format(time.time() - last_time))
+        # GGPrint.print('---------- time:{} DONE define_model'.format(time.time() - last_time))
         # last_time = time.time()
         # self.saver = tf.train.Saver(var_list=None, max_to_keep=None)
         # self.global_iter = 0
@@ -407,18 +409,18 @@ class OneDimCNNModel(NNModel):
         #     self.set_optimizer()
         # # restore model
         # if self.init_model_path is not None:
-        #     print('restore model from {}'.format(self.init_model_path))
+        #     GGPrint.print('restore model from {}'.format(self.init_model_path))
         #     has_restored = self.restore(self.init_model_path, self.restore_var_name_list)
-        #     print('has_restored:', has_restored)
+        #     GGPrint.print('has_restored:', has_restored)
         #     # if it has not been restored, then the model will be initialized with Prob dist.
-        # print('---------- time:{} DONE init model'.format(time.time() - last_time))
+        # GGPrint.print('---------- time:{} DONE init model'.format(time.time() - last_time))
         # last_time = time.time()
 
         return self
 
     def auto_set_model_parameter(self):
 
-        print('TODO auto_set_model_parameter')
+        GGPrint.print('TODO auto_set_model_parameter')
 
         self.can_not_generate_input_output_data = None
 
@@ -430,7 +432,7 @@ class OneDimCNNModel(NNModel):
 
         # info_dim_size_list = []
 
-        print('DONE auto_set_model_parameter')
+        GGPrint.print('DONE auto_set_model_parameter')
         return True
 
     def generate_data_set(self):
@@ -440,7 +442,7 @@ class OneDimCNNModel(NNModel):
     def get_output_classes_from_model(self, init_model_path):
         from smalltrain.model.operation import is_s3_path, download_to_local, upload_to_cloud
 
-        print('[get_output_classes_from_model]Restore from init_model_path:{}'.format(init_model_path))
+        GGPrint.print('[get_output_classes_from_model]Restore from init_model_path:{}'.format(init_model_path))
 
         local_init_model_path = init_model_path
         if self.prioritize_cloud:
@@ -453,12 +455,12 @@ class OneDimCNNModel(NNModel):
                 if _global_iter_got_from_path is not None:
                     local_init_model_path = local_init_model_path + '-' + str(_global_iter_got_from_path)
             else:
-                print('[get_output_classes_from_model]Check local:{}'.format(init_model_path))
+                GGPrint.print('[get_output_classes_from_model]Check local:{}'.format(init_model_path))
 
-        print('[get_output_classes_from_model]Check local_init_model_path:{}'.format(local_init_model_path))
+        GGPrint.print('[get_output_classes_from_model]Check local_init_model_path:{}'.format(local_init_model_path))
 
         if local_init_model_path is None or len(local_init_model_path) < 1 or os.path.isfile(local_init_model_path):
-            print('[get_output_classes_from_model]local_init_model_path is empty. output_classes set None')
+            GGPrint.print('[get_output_classes_from_model]local_init_model_path is empty. output_classes set None')
             self.output_classes = None
             return None
         meta_file_path = '{}.meta'.format(local_init_model_path)
@@ -468,7 +470,7 @@ class OneDimCNNModel(NNModel):
 
         # get output_classes from last layer b_fc2 shape
         _variables = tf.get_default_graph().get_collection_ref(tf.GraphKeys.VARIABLES)
-        print(_variables)
+        GGPrint.print(_variables)
         bias_before_output_layer_name = 'model/fc/b_fc2/b_fc2:0'
         b_fc2 = tf.get_default_graph().get_tensor_by_name(bias_before_output_layer_name)
 
@@ -482,7 +484,7 @@ class OneDimCNNModel(NNModel):
         from smalltrain.model.operation import is_s3_path, download_to_local, upload_to_cloud
 
         last_time = time.time()
-        print('train with iter_to:{}, batch_size:{}, dropout_ratio:{}'.format(iter_to, batch_size, dropout_ratio))
+        GGPrint.print('train with iter_to:{}, batch_size:{}, dropout_ratio:{}'.format(iter_to, batch_size, dropout_ratio))
 
         # TODO
         train_index = 0
@@ -510,25 +512,25 @@ class OneDimCNNModel(NNModel):
         elif self.model_type == 'REGRESSION':
             test_values = test_values.reshape(-1) # TODO
 
-        # print('test_index_list:{}'.format(test_index_list))
-        print('test_data.shape:{}'.format(test_data.shape))
-        print('test_values.shape:{}'.format(test_values.shape))
+        # GGPrint.print('test_index_list:{}'.format(test_index_list))
+        GGPrint.print('test_data.shape:{}'.format(test_data.shape))
+        GGPrint.print('test_values.shape:{}'.format(test_values.shape))
 
-        print('self.prediction_mode:{}'.format(self.prediction_mode))
-        print('---------- time:{}'.format(time.time() - last_time))
+        GGPrint.print('self.prediction_mode:{}'.format(self.prediction_mode))
+        GGPrint.print('---------- time:{}'.format(time.time() - last_time))
         last_time = time.time()
         assert (test_data.shape[0] > 0)
 
         test_data_id_set = None
         if self.data_set.data_id_set is not None:
             test_data_id_set = self.data_set.get_test_data_id_set()
-            print('test_data_id_set.shape:{}'.format(test_data_id_set.shape))
+            GGPrint.print('test_data_id_set.shape:{}'.format(test_data_id_set.shape))
 
         test_annotation_data = None
         if self.data_set.annotation_data is not None:
             # test_annotation_data = self.data_set.annotation_data[test_index_list]
             test_annotation_data = self.data_set.get_test_annotation_data()
-            print('test_annotation_data.shape:{}'.format(test_annotation_data.shape))
+            GGPrint.print('test_annotation_data.shape:{}'.format(test_annotation_data.shape))
 
 
 
@@ -538,8 +540,8 @@ class OneDimCNNModel(NNModel):
         # train_data_set.input_data = input_data[:-test_size].astype(np.float32)
         # train_data_set.output_data = output_data[:-test_size].astype(np.float32)
 
-        # print('train_data_set.input_data.shape:{}'.format(train_data_set.input_data.shape))
-        print('train_data_set.input_data.shape:{}'.format(self.data_set.get_train_input_data_shape()))
+        # GGPrint.print('train_data_set.input_data.shape:{}'.format(train_data_set.input_data.shape))
+        GGPrint.print('train_data_set.input_data.shape:{}'.format(self.data_set.get_train_input_data_shape()))
 
         # plot input and output data
         if self.model_type == 'CLASSIFICATION':
@@ -547,15 +549,15 @@ class OneDimCNNModel(NNModel):
         else:
             _output_data = test_values
 
-        print('test_input_data:{}'.format(test_data[:15, -1, 0]))
-        print('test_output_data:{}'.format(test_values[:3]))
-        print('---------- time:{}'.format(time.time() - last_time))
+        GGPrint.print('test_input_data:{}'.format(test_data[:15, -1, 0]))
+        GGPrint.print('test_output_data:{}'.format(test_values[:3]))
+        GGPrint.print('---------- time:{}'.format(time.time() - last_time))
         last_time = time.time()
         plot_data(input_data=test_data, output_data=test_values_laveled if self.model_type == 'CLASSIFICATION' else test_values,
                            y_max=None, series_range=None,
                            report_dir_path=report_dir_path)
 
-        print('---------- time:{} DONE plot_data'.format(time.time() - last_time))
+        GGPrint.print('---------- time:{} DONE plot_data'.format(time.time() - last_time))
         last_time = time.time()
         if self.debug_mode:
             if (not self.prediction_mode) and (not self.test_only_mode):
@@ -576,7 +578,7 @@ class OneDimCNNModel(NNModel):
         for name in all_variables: f.write('{}\n'.format(name))
         f.close()
 
-        print('---------- time:{} DONE save all_variables names'.format(time.time() - last_time))
+        GGPrint.print('---------- time:{} DONE save all_variables names'.format(time.time() - last_time))
         last_time = time.time()
 
         # save trainable_variables names
@@ -587,7 +589,7 @@ class OneDimCNNModel(NNModel):
         f.close()
         if self.cloud_root: upload_to_cloud(_report_path, self.cloud_root, self.save_root_dir)
 
-        print('---------- time:{} DONE upload_to_cloud'.format(time.time() - last_time))
+        GGPrint.print('---------- time:{} DONE upload_to_cloud'.format(time.time() - last_time))
         last_time = time.time()
 
         # if self.prediction_mode:
@@ -600,16 +602,16 @@ class OneDimCNNModel(NNModel):
             if (not self.test_only_mode) and (not self.prediction_mode):
                 input_batch, output_batch = train_data_set.next_batch(batch_size)
 
-                #  print('i:{}'.format(i))
+                #  GGPrint.print('i:{}'.format(i))
 
                 if self.global_iter == 0:
-                    print('====================')
-                    print('step %d, start training' % (self.global_iter))
+                    GGPrint.print('====================')
+                    GGPrint.print('step %d, start training' % (self.global_iter))
 
-                    print('input_batch.dtype:{}'.format(input_batch.dtype))
-                    print('output_batch.dtype:{}'.format(output_batch.dtype))
-                    print('input_batch.shape:{}'.format(input_batch.shape))
-                    print('output_batch.shape:{}'.format(output_batch.shape))
+                    GGPrint.print('input_batch.dtype:{}'.format(input_batch.dtype))
+                    GGPrint.print('output_batch.dtype:{}'.format(output_batch.dtype))
+                    GGPrint.print('input_batch.shape:{}'.format(input_batch.shape))
+                    GGPrint.print('output_batch.shape:{}'.format(output_batch.shape))
 
                 # train
                 self.train_step.run(
@@ -629,12 +631,12 @@ class OneDimCNNModel(NNModel):
                     # train_accuracy = accuracy.test(feed_dict={
                     # train_total_loss = self.total_loss.test(feed_dict={
                     #     self.x: input_batch, self.y_: output_batch, self.keep_prob: 1.0, self.learning_rate: learning_rate})
-                    print('========================================')
-                    print('step %d, training loss %g' % (self.global_iter, train_total_loss))
-                    print('========================================')
+                    GGPrint.print('========================================')
+                    GGPrint.print('step %d, training loss %g' % (self.global_iter, train_total_loss))
+                    GGPrint.print('========================================')
                     self.train_writer.add_summary(summary, self.global_iter)
 
-                    # print('min and max of normed train date_block_num:{}, {}'.format(min(input_batch[:,0,0]), max(input_batch[:,0,0])))
+                    # GGPrint.print('min and max of normed train date_block_num:{}, {}'.format(min(input_batch[:,0,0]), max(input_batch[:,0,0])))
 
             # _test_and_report = (self.test_only_mode or self.global_iter == 9 or self.global_iter % 100 == 99)
             _test_and_report = (self.test_only_mode or self.prediction_mode or self.global_iter == 9 or self.global_iter % 100 == 99)
@@ -691,9 +693,9 @@ class OneDimCNNModel(NNModel):
                                                                              self.l1_norm_reg_ratio: l1_norm_reg_ratio,
                                                                              self.is_train: False})
 
-                    print('========================================')
-                    print('step:{}, testing root_mean_squared_error:{}, mean_absolute_error:{}'.format(self.global_iter, root_mean_squared_error, mean_absolute_error))
-                    print('========================================')
+                    GGPrint.print('========================================')
+                    GGPrint.print('step:{}, testing root_mean_squared_error:{}, mean_absolute_error:{}'.format(self.global_iter, root_mean_squared_error, mean_absolute_error))
+                    GGPrint.print('========================================')
                     assert (root_mean_squared_error is not None)
 
                     new_errors = pd.DataFrame([[self.global_iter, root_mean_squared_error, mean_absolute_error]], columns=(['global_iter', 'root_mean_squared_error', 'mean_absolute_error']))
@@ -704,7 +706,7 @@ class OneDimCNNModel(NNModel):
                     min_global_iter = errors_history.iloc[min_rmse_index]['global_iter']
                     at_min_mean_absolute_error = errors_history.iloc[min_rmse_index]['mean_absolute_error']
 
-                    print('min_global_iter:{}, min of root_mean_squared_error:{}, wirh mean_absolute_error:{}'.format(min_global_iter, min_root_mean_squared_error, at_min_mean_absolute_error))
+                    GGPrint.print('min_global_iter:{}, min of root_mean_squared_error:{}, wirh mean_absolute_error:{}'.format(min_global_iter, min_root_mean_squared_error, at_min_mean_absolute_error))
                     if report_dir_path:
                         _report_path = os.path.join(report_dir_path, 'errors_history.csv')
                         errors_history.to_csv(_report_path, index=False)
@@ -729,10 +731,10 @@ class OneDimCNNModel(NNModel):
                                 naive_error = calc_error_with_drop(plot_error, test_values[:-1], y_estimated[1:], calc_range=calc_range)
                             error_name = 'error({})'.format(plot_error)
                             # report naive error TODO standardize
-                            print('{}, error:{}, naive_error:{}'.format(error_name, error_to_plot, naive_error))
+                            GGPrint.print('{}, error:{}, naive_error:{}'.format(error_name, error_to_plot, naive_error))
 
                     _offset_column_index = train_data_set.offset_column_index
-                    # print('_offset_column_index:{}'.format(_offset_column_index))
+                    # GGPrint.print('_offset_column_index:{}'.format(_offset_column_index))
                     if _offset_column_index > 0:
                         offset_values = test_data[:, 0, _offset_column_index]
                         offset_values = np.reshape(offset_values, (-1))
@@ -743,9 +745,9 @@ class OneDimCNNModel(NNModel):
                         offset_value_unique_list = [train_data_set.input_output_ts_offset]
 
                     for _offset in offset_value_unique_list:
-                        # print('_offset:{}'.format(_offset))
-                        # print('offset_values:{}'.format(offset_values))
-                        # print('len of offset_values:{}'.format(len(offset_values)))
+                        # GGPrint.print('_offset:{}'.format(_offset))
+                        # GGPrint.print('offset_values:{}'.format(offset_values))
+                        # GGPrint.print('len of offset_values:{}'.format(len(offset_values)))
 
                         if _offset_column_index > 0:
                             all_index_to_plot = [i for i, x in enumerate(offset_values) if math.fabs(x - _offset) < 1e-3]
@@ -766,7 +768,7 @@ class OneDimCNNModel(NNModel):
                                                                     calc_range=calc_range)
                                     cc_error_name = 'cc error({})'.format(op_error)
 
-                            print('_offset:{}, error_name:{}, error_to_plot:{}, cc_error_name:{}, cc_error:{}'.format(_offset, error_name, error_to_plot, cc_error_name, cc_error))
+                            GGPrint.print('_offset:{}, error_name:{}, error_to_plot:{}, cc_error_name:{}, cc_error:{}'.format(_offset, error_name, error_to_plot, cc_error_name, cc_error))
 
                             x_to_plot_cc = list(range(len(estimated_y_to_plot_cc)))
                             _group_value = None
@@ -790,15 +792,15 @@ class OneDimCNNModel(NNModel):
                             _group_values = test_annotation_data[:, 2 + self.annotation_col_names.index(self.plot_group_data_name_in_annotation)]
                             _group_unique_values = list(set(_group_values))
                             for group_value in _group_unique_values:
-                                # print('group_value:{}'.format(group_value))
+                                # GGPrint.print('group_value:{}'.format(group_value))
                                 index_to_plot = [i for i, x in enumerate(_group_values) if (x == group_value and i in all_index_to_plot)]
-                                # print('index_to_plot:{}'.format(index_to_plot))
-                                # print('test_annotation_data:{}'.format(test_annotation_data[index_to_plot]))
+                                # GGPrint.print('index_to_plot:{}'.format(index_to_plot))
+                                # GGPrint.print('test_annotation_data:{}'.format(test_annotation_data[index_to_plot]))
                                 index_to_plot_group_dict[group_value] = index_to_plot
 
                         report_plot_file_list = []
                         for group_value, index_to_plot in index_to_plot_group_dict.items():
-                            # print('_offset:{}, index_to_plot[:5]:{}'.format(_offset, index_to_plot[:5]))
+                            # GGPrint.print('_offset:{}, index_to_plot[:5]:{}'.format(_offset, index_to_plot[:5]))
                             estimated_y_to_plot = y_estimated[index_to_plot]
                             estimated_label_to_plot = y_label_estimated[index_to_plot] if y_label_estimated is not None else None
                             if self.mask_rate is not None and self.mask_rate > 0:
@@ -817,17 +819,17 @@ class OneDimCNNModel(NNModel):
                             if test_annotation_data is not None:
                                 test_annotation_data_dt_to_export = test_annotation_data[index_to_plot]
 
-                            # print('len(estimated_y_to_plot):{}'.format(len(estimated_y_to_plot)))
+                            # GGPrint.print('len(estimated_y_to_plot):{}'.format(len(estimated_y_to_plot)))
                             x_to_plot = list(range(len(estimated_y_to_plot)))
                             if test_annotation_data is not None and self.plot_x_data_name_in_annotation is not None :
-                                # print('self.plot_x_data_name_in_annotation:{}'.format(self.plot_x_data_name_in_annotation))
-                                # print('self.annotation_col_names.index(self.plot_x_data_name_in_annotation):{}'.format(self.annotation_col_names.index(self.plot_x_data_name_in_annotation)))
+                                # GGPrint.print('self.plot_x_data_name_in_annotation:{}'.format(self.plot_x_data_name_in_annotation))
+                                # GGPrint.print('self.annotation_col_names.index(self.plot_x_data_name_in_annotation):{}'.format(self.annotation_col_names.index(self.plot_x_data_name_in_annotation)))
                                 # TODO x軸の表示を制御
                                 x_to_plot = 1 + _offset - test_annotation_data_dt_to_export[:, 2 + self.annotation_col_names.index(self.plot_x_data_name_in_annotation)]
 
 
-                            # print('len(x_to_plot):{}'.format(len(x_to_plot)))
-                            # print('x_to_plot:{}'.format(x_to_plot))
+                            # GGPrint.print('len(x_to_plot):{}'.format(len(x_to_plot)))
+                            # GGPrint.print('x_to_plot:{}'.format(x_to_plot))
 
                             # if self.test_only_mode:
                             if False:
@@ -920,15 +922,15 @@ class OneDimCNNModel(NNModel):
                                 gif_util.generate_gif_animation(src_file_path_list=report_plot_file_list, dst_file_path=gif_report_file_path)
                                 # TODO if self.cloud_root: upload_to_cloud(_report_path, self.cloud_root, self.save_root_dir)
                             else:
-                                print('No report_plot_file_list to plot_animation')
+                                GGPrint.print('No report_plot_file_list to plot_animation')
 
                 # if self.global_iter % 1000 == 999:
 
-                print('test cross entropy %g' % test_total_loss)
+                GGPrint.print('test cross entropy %g' % test_total_loss)
                 self.test_writer.add_summary(summary, self.global_iter)
 
                 if save_file_path and not (self.test_only_mode or self.prediction_mode):
-                    print('save model to save_file_path:{}'.format(save_file_path))
+                    GGPrint.print('save model to save_file_path:{}'.format(save_file_path))
                     self.saver.save(self.sess, save_file_path, global_step=self.global_iter)
                     if self.cloud_root:
                         _paths, _global_iter_got_from_path = get_tf_model_file_paths(save_file_path, self.global_iter)
@@ -936,7 +938,7 @@ class OneDimCNNModel(NNModel):
                             upload_to_cloud(_path, self.cloud_root, self.save_root_dir)
 
             if self.test_only_mode or self.prediction_mode:
-                print('DONE test_only_mode or self.prediction_mode')
+                GGPrint.print('DONE test_only_mode or self.prediction_mode')
                 return
 
 
@@ -956,13 +958,13 @@ class OneDimCNNModel(NNModel):
 
         with tf.name_scope('model/'):
             self.y = output_middle_layer
-            print('y.shape:', self.y.shape)
+            GGPrint.print('y.shape:', self.y.shape)
 
-            print('self.model_type :', self.model_type)
+            GGPrint.print('self.model_type :', self.model_type)
 
             if self.model_type == 'REGRESSION':
                 self.y = tf.reshape(self.y, [-1])
-                print('y reshaped to :', self.y.shape)
+                GGPrint.print('y reshaped to :', self.y.shape)
             else:
                 self.y_label = tf.cast(tf.argmax(self.y, 1), dtype=tf.int32)
                 self.y_softmax = tf.nn.softmax(self.y)
@@ -1009,7 +1011,7 @@ class OneDimCNNModel(NNModel):
             self.set_optimizer()
 
             if self.model_type == 'CLASSIFICATION':
-                # print('DEBUG self.y.shape:{}, self.y_.shape:{}'.format(self.y.shape, self.y_.shape))
+                # GGPrint.print('DEBUG self.y.shape:{}, self.y_.shape:{}'.format(self.y.shape, self.y_.shape))
                 self.correct_prediction = tf.equal(tf.argmax(self.y, 1), tf.argmax(self.y_, 1))
                 self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction, tf.float32))
                 tf.summary.scalar('accuracy', self.accuracy)
@@ -1038,7 +1040,7 @@ class OneDimCNNModel(NNModel):
                     b_conv = self.bias_variable([conv_out_channels], name="b_conv")
                     self.variable_summaries(b_conv)
 
-            print('########## {} ########## input x shape:{} ########## W_conv:{} ########## pool:{} ########## has_batch_norm:{} ########## actf:{} ##########'.format(
+            GGPrint.print('########## {} ########## input x shape:{} ########## W_conv:{} ########## pool:{} ########## has_batch_norm:{} ########## actf:{} ##########'.format(
                 _name, x.shape, W_conv.shape, pool, has_batch_norm, actf))
 
             h_conv = conv1d(x, W_conv)
@@ -1088,7 +1090,7 @@ class OneDimCNNModel(NNModel):
                 self.y_ = tf.placeholder(tf.float32, shape=[None, self.output_classes])
 
             # x_3d = tf.reshape(self.x, [-1, input_width, col_size, 1])
-            # print('x_3d:', x_3d.shape)  # (?, 37, 10, 10, 1)
+            # GGPrint.print('x_3d:', x_3d.shape)  # (?, 37, 10, 10, 1)
 
 
             self.cnn_layer_names = ['cnn_layer_{}'.format(i) for i in range(n_layer)]
@@ -1100,9 +1102,9 @@ class OneDimCNNModel(NNModel):
                 # conv_in[1] = first_conv_in # ResNet ver 1.0 (~2019/01/08 16:01)
                 conv_out_size = conv_in[-1]  # ResNet ver 2.0 (2019/01/08 16:58~)
             else:
-                print('n_layer:{}'.format(n_layer))
+                GGPrint.print('n_layer:{}'.format(n_layer))
                 conv_in = np.hstack((first_conv_in, np.asarray(self.cnn_channel_size_list, dtype='int32')))
-                print('conv_in:{}'.format(conv_in))
+                GGPrint.print('conv_in:{}'.format(conv_in))
                 conv_out_size = conv_in[-1]
 
             conved_width = self.input_width
@@ -1113,7 +1115,7 @@ class OneDimCNNModel(NNModel):
             # Input Layer
             # x = tf.transpose(self.x, perm=[0, 2, 1])
             x = self.x
-            # print('x shape before delete_non_ts_col_tensor:', x.shape)
+            # GGPrint.print('x shape before delete_non_ts_col_tensor:', x.shape)
             if has_non_cnn_net:
                 delete_non_ts_col_tensor = tf.cast([[[1, 0, 0, 1, 1, 0, 1, 1]]], tf.float32)
                 delete_ts_col_tensor = tf.cast([[[0, 1, 1, 0, 0, 1, 0, 0]]], tf.float32)
@@ -1122,25 +1124,25 @@ class OneDimCNNModel(NNModel):
                 # non_ts_x = tf.reshape(non_ts_x, [-1, col_size])
                 non_ts_x = tf.reshape(non_ts_x, [-1, col_size * input_width])
 
-                print('x shape after delete_non_ts_col_tensor:', x.shape)
-                print('non_ts_x shape after delete ts_col_tensor:', non_ts_x.shape)
+                GGPrint.print('x shape after delete_non_ts_col_tensor:', x.shape)
+                GGPrint.print('non_ts_x shape after delete ts_col_tensor:', non_ts_x.shape)
 
             x = tf.reshape(x, [-1, 1, input_width, first_conv_in])
 
             if self.has_res_net:
                 n_cnn_layers = len(self.cnn_layer_names)
-                print('n_cnn_layers:{}'.format(n_cnn_layers))
+                GGPrint.print('n_cnn_layers:{}'.format(n_cnn_layers))
                 N_CNN_LAYERS_IN_RES_BLOCK = 2 # TODO
                 n_res_block = int(n_cnn_layers / N_CNN_LAYERS_IN_RES_BLOCK)
-                print('n_res_block:{}'.format(n_res_block))
+                GGPrint.print('n_res_block:{}'.format(n_res_block))
 
                 l = 0
 
                 # add cnn_layer without residual
                 n_cnn_layers_without_res_net = int(n_cnn_layers - n_res_block * N_CNN_LAYERS_IN_RES_BLOCK)
-                print('n_cnn_layers_without_res_net:{}'.format(n_cnn_layers_without_res_net))
+                GGPrint.print('n_cnn_layers_without_res_net:{}'.format(n_cnn_layers_without_res_net))
                 if n_cnn_layers_without_res_net >= 1:
-                    print('add cnn_layer {} without residual'.format(n_cnn_layers_without_res_net))
+                    GGPrint.print('add cnn_layer {} without residual'.format(n_cnn_layers_without_res_net))
                     while l < n_cnn_layers_without_res_net:
                         x = self.cnn_layer(x, layer_num=l, layer_name=self.cnn_layer_names[l], conv_in_channels=conv_in[l],
                                            conv_out_channels=conv_in[l + 1], filter_width=self.filter_width,
@@ -1190,11 +1192,11 @@ class OneDimCNNModel(NNModel):
                                 pool_res = np.asarray(self.pool_size_list[l:l + N_CNN_LAYERS_IN_RES_BLOCK]).prod()
                                 pooled_input_1 = tf.nn.avg_pool(x_id, ksize=[1, 1, pool_res, 1],
                                                                 strides=[1, 1, pool_res, 1], padding='VALID')
-                                print('pooled_input_1 shape:{}'.format(pooled_input_1.shape))
+                                GGPrint.print('pooled_input_1 shape:{}'.format(pooled_input_1.shape))
                                 # Zero-padding
                                 padded_input = tf.pad(pooled_input_1,
                                                       [[0, 0], [0, 0], [0, 0], [0, (conv_out_channels - conv_in_channels)]])
-                                print('padded_input shape:{}'.format(padded_input.shape))
+                                GGPrint.print('padded_input shape:{}'.format(padded_input.shape))
                                 with tf.name_scope('res_out'):
                                     res_out = tf.identity(padded_input, name='res_out')
                         x_add_res = tf.add(x, res_out, name='x_add_res')
@@ -1207,7 +1209,7 @@ class OneDimCNNModel(NNModel):
                         with tf.name_scope('actf_after_add'):
                             actf = self.act_func_ref_list[l]
                             actf_after_add = actf(x_add_res, name='actf_after_add')
-                        print('########## layer_name:{} ########## input x shape:{} ########## conv_in_channels:{} ########## conv_out_channels:{} ########## res_out:{} ########## with activation'.format(
+                        GGPrint.print('########## layer_name:{} ########## input x shape:{} ########## conv_in_channels:{} ########## conv_out_channels:{} ########## res_out:{} ########## with activation'.format(
                                 layer_name, x.shape, conv_in_channels, conv_out_channels, res_out.shape))
 
                         l += N_CNN_LAYERS_IN_RES_BLOCK
@@ -1259,7 +1261,7 @@ class OneDimCNNModel(NNModel):
                 conv_out_flat = tf.add(conv_out_flat, non_ts_x)
 
             output_middle_layer = tf.matmul(conv_out_flat, W_fc2) + b_fc2
-            print('########## {} ########## input x shape:{} ########## W_fc2:{} ########## b_fc2:{} ##########'.format(
+            GGPrint.print('########## {} ########## input x shape:{} ########## W_fc2:{} ########## b_fc2:{} ##########'.format(
                 layer_name, x.shape, W_fc2.shape, b_fc2.shape))
 
             return output_middle_layer
@@ -1315,10 +1317,10 @@ def plot_estmated_true(x, estimated_y, iter=None, estimated_label=None, model_ty
 
     # 正しい検出(True positive)、未検出(False negative)、誤った検出(False positive)
     plt.clf()
-    # print('true_y.max():{}'.format(true_y.max()))
-    # print('true_y.min():{}'.format(true_y.min()))
-    # print('estimated_y.max():{}'.format(estimated_y.max()))
-    # print('estimated_y.min():{}'.format(estimated_y.min()))
+    # GGPrint.print('true_y.max():{}'.format(true_y.max()))
+    # GGPrint.print('true_y.min():{}'.format(true_y.min()))
+    # GGPrint.print('estimated_y.max():{}'.format(estimated_y.max()))
+    # GGPrint.print('estimated_y.min():{}'.format(estimated_y.min()))
     if y_max is None:
         y_max = estimated_y.max()
     y_min = estimated_y.min()
@@ -1327,8 +1329,8 @@ def plot_estmated_true(x, estimated_y, iter=None, estimated_label=None, model_ty
         y_min = min(y_min, true_y.min())
 
     if estimated_label is not None:
-        # print('estimated_label.max():{}'.format(estimated_label.max()))
-        # print('estimated_label.min():{}'.format(estimated_label.min()))
+        # GGPrint.print('estimated_label.max():{}'.format(estimated_label.max()))
+        # GGPrint.print('estimated_label.min():{}'.format(estimated_label.min()))
         y_max = max(y_max, estimated_label.max())
         y_min = y_max * -0.05
     else:
@@ -1340,7 +1342,7 @@ def plot_estmated_true(x, estimated_y, iter=None, estimated_label=None, model_ty
     plt.xlim(x_range[0], x_range[1])
 
     if debug_mode:
-        print('y_min:{}, y_max:{}, estimated_y:{}, true_y:{}'.format(y_min, y_max, estimated_y, true_y))
+        GGPrint.print('y_min:{}, y_max:{}, estimated_y:{}, true_y:{}'.format(y_min, y_max, estimated_y, true_y))
 
     # delete point that is out of y_range
     if y_range is not None:
@@ -1566,11 +1568,11 @@ def calc_accuracy_with_drop(t, e, calc_range=None, rank_boundary_list=None):
     for rank_boundary in rank_boundary_list:
         remove_non_rank_index = np.intersect1d(remove_non_rank_index, ([i for i, x in enumerate(t) if
                          x < rank_boundary[0] or x > rank_boundary[1]]))
-    # print('before remove non-rank index:{}'.format(len(index_to_calc)))
+    # GGPrint.print('before remove non-rank index:{}'.format(len(index_to_calc)))
     index_to_calc = [i for i in index_to_calc if i not in remove_non_rank_index]
 
     all = len(index_to_calc)
-    # print('all:{}'.format(all))
+    # GGPrint.print('all:{}'.format(all))
     tp = 0.0
     tn = 0.0
     fp = 0.0
@@ -1581,22 +1583,22 @@ def calc_accuracy_with_drop(t, e, calc_range=None, rank_boundary_list=None):
         _fp = np.asarray([1.0 for i in index_to_calc if (not in_the_rank(rank_boundary, t[i]) and in_the_rank(rank_boundary, e[i]))]).sum()
         _tn = np.asarray([1.0 for i in index_to_calc if (not in_the_rank(rank_boundary, t[i]) and (not in_the_rank(rank_boundary, e[i])))]).sum()
         _fn = np.asarray([1.0 for i in index_to_calc if (in_the_rank(rank_boundary, t[i]) and (not in_the_rank(rank_boundary, e[i])))]).sum()
-        print('rank_boundary:{}, _tp:{}, _fp:{}, _tn:{}, _fn:{}'.format(rank_boundary, _tp, _fp, _tn, _fn))
+        GGPrint.print('rank_boundary:{}, _tp:{}, _fp:{}, _tn:{}, _fn:{}'.format(rank_boundary, _tp, _fp, _tn, _fn))
         tp += _tp
         fp += _fp
         tn += _tn
         fn += _fn
-    print('all:{}, tp:{}, fp:{}, tn:{}, fn:{}'.format(all, tp, fp, tn, fn))
+    GGPrint.print('all:{}, tp:{}, fp:{}, tn:{}, fn:{}'.format(all, tp, fp, tn, fn))
     return (tp / (tp + fn))
 
 
 def get_tf_model_file_paths(tf_model_path, global_iter=None):
     if global_iter is None:
         try:
-            print('global_iter is not given. try to get global_iter from tf_model_path:{}'.format(tf_model_path))
+            GGPrint.print('global_iter is not given. try to get global_iter from tf_model_path:{}'.format(tf_model_path))
             global_iter = tf_model_path.split('.ckpt-')[1]
         except Exception as e:
-            print('Can not set global_iter with tf_model_path:{} with Exception:{}'.format(tf_model_path, e))
+            GGPrint.print('Can not set global_iter with tf_model_path:{} with Exception:{}'.format(tf_model_path, e))
             global_iter = None
     tf_model_path_with_iter = '{}.ckpt'.format(tf_model_path.split('.ckpt')[0])
     if global_iter is not None:

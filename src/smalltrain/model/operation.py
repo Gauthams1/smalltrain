@@ -4,17 +4,17 @@ import sys
 import os
 
 import ggutils.s3_access as s3_access
-import ggutils.gg_verbosity.GGVerbosePrinting as GGVprint
+from ggutils.gg_verbosity import GGVerbosePrinting
 
 import smalltrain as st
 
-GGPrint = GGVprint(2)
+GGPrint = GGVerbosePrinting(2)
 
 try:
     # For the case smalltrain is installed as Python library
-    GGPrint.print('try to load smalltrain modules from Python library')
+    print('try to load smalltrain modules from Python library')
     from smalltrain.model.nn_model import NNModel
-    GGPrint.print('smalltrain modules are ready to be loaded from Python library')
+    print('smalltrain modules are ready to be loaded from Python library')
 except ModuleNotFoundError:
     if os.environ.get('SMALLTRAIN_HOME'):
         # For the case the environmental value SMALLTRAIN_HOME is exported
@@ -23,10 +23,10 @@ except ModuleNotFoundError:
     else:
         # Try to load smalltrain modules from current directory
         _smalltrain_home_path = './'
-    GGPrint.print('try to load smalltrain modules from the path: {}'.format(_smalltrain_home_path))
+    print('try to load smalltrain modules from the path: {}'.format(_smalltrain_home_path))
     sys.path.append(_smalltrain_home_path)
     from smalltrain.model.nn_model import NNModel
-    GGPrint.print('smalltrain modules are ready to be loaded from the path: {}'.format(_smalltrain_home_path))
+    print('smalltrain modules are ready to be loaded from the path: {}'.format(_smalltrain_home_path))
 
 def get_model_list():
     from smalltrain.model.one_dim_cnn_model import OneDimCNNModel

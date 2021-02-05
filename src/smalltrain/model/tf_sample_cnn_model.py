@@ -20,7 +20,9 @@ from smalltrain.model.two_dim_cnn_model import TwoDimCNNModel
 
 import ggutils.gif_util as gif_util
 import ggutils.s3_access as s3_access
+from ggutils.gg_verbosity import GGVerbosePrinting
 
+GGPrint = GGVerbosePrinting(2)
 
 # MODEL_ID_4NN = '4NN_20180808' # 4 nn model 2019/09/10
 # MODEL_ID_DNN = 'DNN' # 4 nn model 2019/09/10
@@ -72,7 +74,7 @@ class TensorflowSampleCNNModel(TwoDimCNNModel):
     def construct_model(self, log_dir_path, model_id=None, train_data=None, debug_mode=True, prediction_mode=False, hparams=None):
 
         PREFIX = '[TensorflowSampleCNNModel]'
-        print('{}__init__'.format(PREFIX))
+        GGPrint.print('{}__init__'.format(PREFIX))
 
         return super().construct_model(log_dir_path, model_id, train_data, debug_mode, prediction_mode, hparams)
 
