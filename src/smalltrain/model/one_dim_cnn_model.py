@@ -411,7 +411,7 @@ class OneDimCNNModel(NNModel):
         # if self.init_model_path is not None:
         #     GGPrint.print('restore model from {}'.format(self.init_model_path))
         #     has_restored = self.restore(self.init_model_path, self.restore_var_name_list)
-        #     GGPrint.print('has_restored:', has_restored)
+        #     GGPrint.print('has_restored: {}'.format( has_restored))
         #     # if it has not been restored, then the model will be initialized with Prob dist.
         # GGPrint.print('---------- time:{} DONE init model'.format(time.time() - last_time))
         # last_time = time.time()
@@ -958,13 +958,13 @@ class OneDimCNNModel(NNModel):
 
         with tf.name_scope('model/'):
             self.y = output_middle_layer
-            GGPrint.print('y.shape:', self.y.shape)
+            GGPrint.print('y.shape: {}'.format( self.y.shape))
 
-            GGPrint.print('self.model_type :', self.model_type)
+            GGPrint.print('self.model_type : {}'.format( self.model_type))
 
             if self.model_type == 'REGRESSION':
                 self.y = tf.reshape(self.y, [-1])
-                GGPrint.print('y reshaped to :', self.y.shape)
+                GGPrint.print('y reshaped to : {}'.format( self.y.shape))
             else:
                 self.y_label = tf.cast(tf.argmax(self.y, 1), dtype=tf.int32)
                 self.y_softmax = tf.nn.softmax(self.y)
@@ -1090,7 +1090,7 @@ class OneDimCNNModel(NNModel):
                 self.y_ = tf.placeholder(tf.float32, shape=[None, self.output_classes])
 
             # x_3d = tf.reshape(self.x, [-1, input_width, col_size, 1])
-            # GGPrint.print('x_3d:', x_3d.shape)  # (?, 37, 10, 10, 1)
+            # GGPrint.print('x_3d: {}'.format( x_3d.shape)  # (?, 37, 10, 10, 1))
 
 
             self.cnn_layer_names = ['cnn_layer_{}'.format(i) for i in range(n_layer)]
@@ -1115,7 +1115,7 @@ class OneDimCNNModel(NNModel):
             # Input Layer
             # x = tf.transpose(self.x, perm=[0, 2, 1])
             x = self.x
-            # GGPrint.print('x shape before delete_non_ts_col_tensor:', x.shape)
+            # GGPrint.print('x shape before delete_non_ts_col_tensor: {}'.format( x.shape))
             if has_non_cnn_net:
                 delete_non_ts_col_tensor = tf.cast([[[1, 0, 0, 1, 1, 0, 1, 1]]], tf.float32)
                 delete_ts_col_tensor = tf.cast([[[0, 1, 1, 0, 0, 1, 0, 0]]], tf.float32)
@@ -1124,8 +1124,8 @@ class OneDimCNNModel(NNModel):
                 # non_ts_x = tf.reshape(non_ts_x, [-1, col_size])
                 non_ts_x = tf.reshape(non_ts_x, [-1, col_size * input_width])
 
-                GGPrint.print('x shape after delete_non_ts_col_tensor:', x.shape)
-                GGPrint.print('non_ts_x shape after delete ts_col_tensor:', non_ts_x.shape)
+                GGPrint.print('x shape after delete_non_ts_col_tensor: {}'.format( x.shape))
+                GGPrint.print('non_ts_x shape after delete ts_col_tensor: {}'.format( non_ts_x.shape))
 
             x = tf.reshape(x, [-1, 1, input_width, first_conv_in])
 

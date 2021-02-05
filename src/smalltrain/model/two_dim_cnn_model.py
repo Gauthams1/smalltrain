@@ -1220,9 +1220,9 @@ class TwoDimCNNModel(OneDimCNNModel):
 
         with tf.name_scope('model/'):
             self.y = output_middle_layer
-            GGPrint.print('y.shape:{}', self.y.shape)
+            GGPrint.print('y.shape:{} {}'.format( self.y.shape))
 
-            GGPrint.print('self.model_type :', self.model_type)
+            GGPrint.print('self.model_type : {}'.format( self.model_type))
 
             if self.model_type == 'CLASSIFICATION':
                 self.y_label = tf.cast(tf.argmax(self.y, 1), dtype=tf.int32)
@@ -1422,7 +1422,7 @@ class TwoDimCNNModel(OneDimCNNModel):
                 raise Exception('only classification model type is available.')
 
             # x_3d = tf.reshape(self.x, [-1, input_width, col_size, 1])
-            # GGPrint.print('x_3d:', x_3d.shape)  # (?, 37, 10, 10, 1)
+            # GGPrint.print('x_3d: {}'.format( x_3d.shape)  # (?, 37, 10, 10, 1))
 
             self.cnn_layer_names = ['cnn_layer_{}'.format(i) for i in range(n_layer)]
             first_conv_in = self.col_size
