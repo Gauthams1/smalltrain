@@ -55,7 +55,8 @@ STATUS_ANAVAILABLE = 2
 STATUS_FILE_NAME = 'image_file_status.csv'
 IMAGENET_URL_LIST_FILE_NAME = 'imagenet_url_list.csv'
 
-CLASS_FILE_PATH = 'imagenet_1000_class.csv'
+CLASS_FILE_PATH = '/var/smalltrain/tutorials/image_recognition/
+imagenet_1000_class.csv'
 
 
 def is_url(url):
@@ -136,19 +137,25 @@ class ImageNetDownloadStatus():
             image_url = df_to_download['url']
             try:
                 image = ImagenetDataSetConverter.download_image(image_url, http_request_timeout=http_request_timeout)
-                _file_name = ImagenetDataSetConverter.image_url_to_file_name(image_url)
-                path = os.path.join(DIST_DATA_DIR, self.id)
-                path = os.path.join(path, _file_name)
-                logger.info('path to write_image:{}'.format(path))
-                ImagenetDataSetConverter.write_image(path, image)
-                # check image by getsize
-                file_size = os.path.getsize(path)
-                self.total_download_size += file_size
-
-                self.df[self.df['url'] == image_url]['status'] = STATUS_DOWNLOADED
-                self.save()
-                downloaded_file_cnt += 1
-                logger.info('Done download with id:{}, image_url:{}'.format(self.id, image_url))
+                 _file_name = ImagenetDataSetConverter.image_url_to_file_name(image_url)
+                 path = os.path.join(DIST_DATA_DIR, self.id)
+                if _file_name == None:
+                    downloaded_file_cnt +=1
+                    continue
+                 path = os.path.join(path, _file_name)
+                if os.path.isfile(path):
+                    downloaded_file_cnt +=1
+                    continue
+                image = ImagenetDataSetConverter.download_image(image_url, http_request_timeout=http_request_timeout)
+                if image == None:
+                    downloaded_file_cnt +=1
+                    continue
+                 logger.info('path to write_image:{}'.format(path))
+                sucess = ImagenetDataSetConverter.write_image(path, image)
+                 # check image by getsize
+                if sucess  == 0:
+                    downloaded_file_cnt +=1
+                    continue
             except (urllib.error.URLError, http.client.InvalidURL) as e:
                 logger.info(
                     'Failed to download, and change status to STATUS_ANAVAILABLE with id:{}, url:{}, e:{}'.format(
@@ -288,21 +295,30 @@ class ImagenetDataSetConverter:
     @staticmethod
     def download_image(url, decode=False, http_request_timeout=None):
         UNAVAILABLE_MESSAGE = 'unavailable'
-        logger.info('TODO download_image with url:{}'.format(url))
-        response = request.urlopen(url, timeout=http_request_timeout)
-        if response.geturl().find(UNAVAILABLE_MESSAGE) >= 0:
-            raise KeyError('unavailable image url:{}'.format(url))
+        logger.info('TODO download_image with url:{}'.format(url))        
+        print('TODO download_image with url:{}'.format(url))
+        try:
+            response = request.urlopen(url, timeout=http_request_timeout)
+            if response.geturl().find(UNAVAILABLE_MESSAGE) >= 0:
+                raise KeyError('unavailable image url:{}'.format(url))
 
-        body = response.read()
-        if decode == True:
-            body = body.decode()
-        return body
-
+            body = response.read()
+            if decode == True:
+                body = body.decode()
+            return body
+        except:
+            return None
+ 
     @staticmethod
     def write_image(path, image):
-        file = open(path, 'wb')
-        file.write(image)
-        file.close()
+        try:
+            file = open(path, 'wb')
+            file.write(image)
+            file.close()
+            return 1
+        except:
+            print("couldnt complete")
+            return 0
 
     def summary_threads(self, last_proc_name=None):
         logger.info('#+#+# summary_threads #+#+#')

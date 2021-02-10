@@ -57,5 +57,7 @@ pip install --user https://github.com/onnx/onnx-tensorflow/archive/master.zip
 
 # Prepare test data set for SmallTrain (CIFAR-10)
 python /var/smalltrain/tutorials/image_recognition/convert_cifar_data_set.py
+python /var/smalltrain/tutorials/image_recognition/convert_cifar_100_data_set.py 
+
 
 exit 0
