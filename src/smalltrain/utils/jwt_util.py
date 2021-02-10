@@ -17,6 +17,9 @@ PAYLOAD_MODEL = {
 
 # from smalltrain.utils.gg_setting import GGSetting
 from smalltrain.utils.gg_setting import GGSetting
+from ggutils.gg_verbosity import GGVerbosePrinting
+
+GGPrint = GGVerbosePrinting(2)
 
 
 def get_secret_from_file(file_path=None):
@@ -26,7 +29,7 @@ def get_secret_from_file(file_path=None):
     f = open(file_path, 'r')
     secret = f.read(0)
     f.close()
-    # print('get_secret_from_file:{}'.format(secret))
+    # GGPrint.print('get_secret_from_file:{}'.format(secret))
     return secret
 
 
@@ -49,13 +52,13 @@ def decode_jwt(jwt, secret=DEFAULT_SECRET):
     header_decoded = json.loads(base64.urlsafe_b64decode(header_b64encoded + '==='))
     payload_decoded = json.loads(base64.urlsafe_b64decode(payload_b64encoded + '==='))
 
-    # print(header_decoded)
+    # GGPrint.print(header_decoded)
     # check header
     if header_decoded['alg'].upper() != 'HMAC-SHA256':
-        print('Invalid algorithm')
+        GGPrint.print('Invalid algorithm')
         return None
     if header_decoded['typ'].upper() != 'JWT':
-        print('Invalid type')
+        GGPrint.print('Invalid type')
         return None
 
     # check signature
@@ -72,7 +75,7 @@ def check_jwt(jwt, secret=DEFAULT_SECRET, raise_error=False):
     try:
         header_b64encoded, payload_b64encoded, signature_actual = jwt.split('.')
     except ValueError as e:
-        # print(e)
+        # GGPrint.print(e)
         if raise_error: raise InvalidJWTError()
         return False
     header_decoded, payload_decoded, signature_expected = decode_jwt(jwt, secret)
@@ -86,12 +89,12 @@ def check_expiration_time(jwt, secret=DEFAULT_SECRET):
         header_b64encoded, payload_b64encoded, signature_actual = jwt.split('.')
         header_decoded, payload_decoded, signature_expected = decode_jwt(jwt, secret)
         if signature_actual != signature_expected:
-            print('Invalid signature')
+            GGPrint.print('Invalid signature')
             return False
         exp = int(payload_decoded['exp'])
         return time.time() < exp
     except ValueError as e:
-        print(e)
+        GGPrint.print(e)
         return False
 
 
@@ -102,7 +105,7 @@ def get_sub(jwt, secret=DEFAULT_SECRET, raise_error=False):
         sub = payload_decoded['sub']
         return sub
     except ValueError as e:
-        # print(e)
+        # GGPrint.print(e)
         if raise_error: raise InvalidJWTError()
         return None
 
@@ -121,7 +124,7 @@ def create_signature(header, payload, secret=DEFAULT_SECRET):
     '''
     header_b64encoded = b64encode_json(header)
     payload_b64encoded = b64encode_json(payload)
-    # print('header_b64encoded:{}'.format(header_b64encoded))
+    # GGPrint.print('header_b64encoded:{}'.format(header_b64encoded))
     message = header_b64encoded + '.'.encode() + payload_b64encoded
     signature = hmac_sha256(message, secret)
 
@@ -150,30 +153,30 @@ def test_create_signature():
     payload = PAYLOAD_MODEL.copy()
     secret = '12345'
     signature1 = create_signature(header, payload, secret)
-    print('signature1:{}'.format(signature1))
+    GGPrint.print('signature1:{}'.format(signature1))
 
     payload['exp'] = '0234567890',
     signature2 = create_signature(header, payload, secret)
-    print('signature2:{}'.format(signature2))
+    GGPrint.print('signature2:{}'.format(signature2))
 
 
 def test_create_decpde_jwt():
-    print('##### test_create_decpde_jwt')
+    GGPrint.print('##### test_create_decpde_jwt')
     header = HEADER_MODEL.copy()
     payload = PAYLOAD_MODEL.copy()
     jwt = create_jwt(header, payload)
-    print('header:{}, payload:{}, jwt:{}'.format(header, payload, jwt))
+    GGPrint.print('header:{}, payload:{}, jwt:{}'.format(header, payload, jwt))
 
     header_decoded, payload_decoded, signature_expected = decode_jwt(jwt)
-    print('header_decoded:{}, payload:{}, signature_expected:{}'.format(header_decoded, payload, signature_expected))
+    GGPrint.print('header_decoded:{}, payload:{}, signature_expected:{}'.format(header_decoded, payload, signature_expected))
 
     assert signature_expected == jwt.split('.')[-1]
 
     valid_jwt = check_jwt(jwt)
-    print('valid_jwt:{}'.format(valid_jwt))
+    GGPrint.print('valid_jwt:{}'.format(valid_jwt))
     assert valid_jwt
 
-    print('##### try to change payload')
+    GGPrint.print('##### try to change payload')
     payload_changed = payload.copy()
     payload_changed['exp'] = '0234567890'
     secret_invalid = '00000'
@@ -181,31 +184,31 @@ def test_create_decpde_jwt():
     header_b64encoded = b64encode_json(header).decode('utf-8')
     payload_b64encoded = b64encode_json(payload_changed).decode('utf-8')
     jwt_changed = '{}.{}.{}'.format(header_b64encoded, payload_b64encoded, signature)
-    print('header:{}, payload_changed:{}, jwt_changed:{}'.format(header, payload_changed, jwt_changed))
+    GGPrint.print('header:{}, payload_changed:{}, jwt_changed:{}'.format(header, payload_changed, jwt_changed))
     header_decoded, payload_decoded, signature_expected = decode_jwt(jwt)
-    print('header_decoded:{}, payload_decoded:{}, signature_expected:{}'.format(header_decoded, payload_decoded,
+    GGPrint.print('header_decoded:{}, payload_decoded:{}, signature_expected:{}'.format(header_decoded, payload_decoded,
                                                                                 signature_expected))
 
     assert signature_expected != jwt_changed.split('.')[-1]
 
     valid_jwt = check_jwt(jwt_changed)
-    print('valid_jwt:{}'.format(valid_jwt))
+    GGPrint.print('valid_jwt:{}'.format(valid_jwt))
     assert not valid_jwt
 
 
 def test_check_expiration_time():
-    print('##### test_check_expiration_time')
+    GGPrint.print('##### test_check_expiration_time')
     header = HEADER_MODEL.copy()
     payload = PAYLOAD_MODEL.copy()
     payload['exp'] = '1555388373'  # about 2019/04/16 13:19
 
     jwt = create_jwt(header, payload)
-    print('header:{}, payload:{}, jwt:{}'.format(header, payload, jwt))
+    GGPrint.print('header:{}, payload:{}, jwt:{}'.format(header, payload, jwt))
 
     header_decoded, payload_decoded, signature_expected = decode_jwt(jwt)
-    print('header_decoded:{}, payload:{}, signature_expected:{}'.format(header_decoded, payload, signature_expected))
+    GGPrint.print('header_decoded:{}, payload:{}, signature_expected:{}'.format(header_decoded, payload, signature_expected))
     is_ok_exp = check_expiration_time(jwt)
-    print('is_ok_exp:{}'.format(is_ok_exp))
+    GGPrint.print('is_ok_exp:{}'.format(is_ok_exp))
     assert not is_ok_exp
 
     header = HEADER_MODEL.copy()
@@ -213,24 +216,24 @@ def test_check_expiration_time():
     payload['exp'] = str(int(time.time()) + 60 * 60)  # 1 hour later
 
     jwt = create_jwt(header, payload)
-    print('header:{}, payload:{}, jwt:{}'.format(header, payload, jwt))
+    GGPrint.print('header:{}, payload:{}, jwt:{}'.format(header, payload, jwt))
 
     header_decoded, payload_decoded, signature_expected = decode_jwt(jwt)
-    print('header_decoded:{}, payload:{}, signature_expected:{}'.format(header_decoded, payload, signature_expected))
+    GGPrint.print('header_decoded:{}, payload:{}, signature_expected:{}'.format(header_decoded, payload, signature_expected))
     is_ok_exp = check_expiration_time(jwt)
-    print('is_ok_exp:{}'.format(is_ok_exp))
+    GGPrint.print('is_ok_exp:{}'.format(is_ok_exp))
     assert is_ok_exp
 
 
 def test_create_admin_jwt():
-    print('##### test_create_admin_jwt')
+    GGPrint.print('##### test_create_admin_jwt')
     header = HEADER_MODEL.copy()
     payload = PAYLOAD_MODEL.copy()
     payload['exp'] = str(int(time.time()) + 60 * 60)  # 1 hour later
     payload['sub'] = GGSetting().get_admin_user_id()
 
     jwt = create_jwt(header, payload)
-    print('header:{}, payload:{}, jwt:{}'.format(header, payload, jwt))
+    GGPrint.print('header:{}, payload:{}, jwt:{}'.format(header, payload, jwt))
 
 
 if __name__ == '__main__':

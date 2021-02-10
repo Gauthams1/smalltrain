@@ -9,6 +9,9 @@ import tensorflow.compat.v1 as tf_v1 # TensorFlow 1.X
 import onnx
 import tf2onnx
 from onnx_tf.backend import prepare
+from ggutils.gg_verbosity import GGVerbosePrinting
+
+GGPrint = GGVerbosePrinting(2)
 
 def save_to_onnx(sess, save_file_path,
                  input_names,
@@ -21,7 +24,7 @@ def save_to_onnx(sess, save_file_path,
     # debug
     work_pb_file_path = os.path.join('/workspace', 'debug_saved_model.pbtxt')
     tf_v1.train.write_graph(frozen_graph_def, '.', work_pb_file_path, as_text=True)
-    print('work_pb_file_path: {}'.format(work_pb_file_path))
+    GGPrint.print('work_pb_file_path: {}'.format(work_pb_file_path))
 
     _graph = tf_v1.Graph()
     with _graph.as_default():
@@ -32,27 +35,27 @@ def save_to_onnx(sess, save_file_path,
                                                      input_names=input_names,
                                                      output_names=output_names)
         model_proto = onnx_graph.make_model('smalltrain')
-        print('save_to_onnx save_file_path: {}'.format(save_file_path))
+        GGPrint.print('save_to_onnx save_file_path: {}'.format(save_file_path))
         with open(save_file_path, 'wb') as f:
             f.write(model_proto.SerializeToString())
 
 def load_from_onnx(model_path, input_data=None, expecred_values=None):
 
-    print("load graph")
+    GGPrint.print("load graph")
 
     model = onnx.load(model_path)
 
     tf_rep = prepare(model)
 
-    print('----- inputs -----')
-    print(tf_rep.inputs)
-    print('-' * 10)
-    print('----- outputs -----')
-    print(tf_rep.outputs)
-    print('-' * 10)
+    GGPrint.print('----- inputs -----')
+    GGPrint.print(tf_rep.inputs)
+    GGPrint.print('-' * 10)
+    GGPrint.print('----- outputs -----')
+    GGPrint.print(tf_rep.outputs)
+    GGPrint.print('-' * 10)
 
     _estimated = prepare(model).run(input_data)  # run the loaded model
     _estimated_label = np.argmax(_estimated, axis=1)
-    print('_estimated_label: {}, expecred_values: {}'.format(_estimated_label, expecred_values))
+    GGPrint.print('_estimated_label: {}, expecred_values: {}'.format(_estimated_label, expecred_values))
 
-    print("DONE load_model")
+    GGPrint.print("DONE load_model")

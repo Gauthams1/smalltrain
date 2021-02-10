@@ -1,15 +1,18 @@
 import smalltrain as st
 import json
+from ggutils.gg_verbosity import GGVerbosePrinting
+
+GGPrint = GGVerbosePrinting(2)
 
 def _update_hyper_param_from_json(current_hyper_param, json_param_string, debug_mode=False):
-    print('json_param_string: {}'.format(json_param_string))
+    GGPrint.print('json_param_string: {}'.format(json_param_string))
     # update current_hyper_param by given json_param_string
     try:
         json_obj = json.loads(json_param_string)
         updated_hyper_param = _update_hyper_param_with_json_obj(current_hyper_param, json_obj, debug_mode)
         return updated_hyper_param
     except FileNotFoundError as e:
-        print(e)
+        GGPrint.print(e)
         return current_hyper_param
 
 def _update_hyper_param_with_json_obj(current_hyper_param, json_obj, debug_mode=False):
@@ -18,11 +21,11 @@ def _update_hyper_param_with_json_obj(current_hyper_param, json_obj, debug_mode=
         if _k in current_hyper_param.keys():
             _update_v = json_obj[_k]
             if debug_mode:
-                print('Update exec_param {} to {}'.format(_k, _update_v))
+                GGPrint.print('Update exec_param {} to {}'.format(_k, _update_v))
             updated_hyper_param[_k] = _update_v
         else:
             if debug_mode:
-                print('No key {} in exec_param'.format(_k))
+                GGPrint.print('No key {} in exec_param'.format(_k))
     return updated_hyper_param
 
 
@@ -199,7 +202,7 @@ class Hyperparameters:
         return self.__dict__
 
     def update_hyper_param_from_file(self, setting_file_path):
-        print('update_hyper_param_from_file with setting_file_path: {}'.format(setting_file_path))
+        GGPrint.print('update_hyper_param_from_file with setting_file_path: {}'.format(setting_file_path))
         try:
             with open(setting_file_path) as f:
                 json_obj = json.load(f)
@@ -208,7 +211,7 @@ class Hyperparameters:
                 # Also add setting_file_path as hparam
                 self.__dict__['setting_file_path'] = setting_file_path
         except FileNotFoundError as e:
-            print(e)
+            GGPrint.print(e)
 
     def update_hyper_param_from_json(self, json_obj):
         updated_hyper_param = _update_hyper_param_with_json_obj(self.__dict__, json_obj)

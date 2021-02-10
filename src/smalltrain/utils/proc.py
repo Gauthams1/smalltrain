@@ -1,6 +1,9 @@
 import os
 import re
 import argparse
+from ggutils.gg_verbosity import GGVerbosePrinting
+
+GGPrint = GGVerbosePrinting(2)
 
 def get_proc_id_with_pattern(pattern='.*python.*\"train_id\": \"{train_id}\"'):
     p = re.compile(pattern)
@@ -12,7 +15,7 @@ def get_proc_id_with_pattern(pattern='.*python.*\"train_id\": \"{train_id}\"'):
         try:
             with open('/proc/{}/cmdline'.format(dirname), mode='rb') as fd:
                 cmdline = fd.read().decode()
-                # print('cmdline:{}'.format(cmdline))
+                # GGPrint.print('cmdline:{}'.format(cmdline))
 
                 if p.match(cmdline) is None: continue
                 proc_id = int(dirname)
@@ -32,6 +35,6 @@ if __name__ == '__main__':
     parser.add_argument('--train_id', '-tid', type=str, default=None, required=True,
                         help='train_id')
     args = parser.parse_args()
-    print('args:{}'.format(args))
+    GGPrint.print('args:{}'.format(args))
     proc_id = get_proc_id_with_train_id(train_id=args.train_id)
-    print('proc_id:{}'.format(proc_id))
+    GGPrint.print('proc_id:{}'.format(proc_id))

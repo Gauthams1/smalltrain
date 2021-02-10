@@ -23,6 +23,9 @@ from smalltrain.model.user import UserManager, User, UserNotFoundError
 import smalltrain.utils.jwt_util as jwt_util
 import smalltrain.utils.proc as proc
 from smalltrain.utils.gg_setting import GGSetting
+from ggutils.gg_verbosity import GGVerbosePrinting
+
+GGPrint = GGVerbosePrinting(2)
 
 # app = Flask(__name__)
 # set the project root directory as the static folder.
@@ -140,7 +143,7 @@ def signin():
     manager = UserManager(db)
     try:
         user = manager.read(user_id_or_email)
-        print('user read:{}'.format(user))
+        GGPrint.print('user read:{}'.format(user))
     except UserNotFoundError as e:
         message = str(e)
         status = 404
@@ -150,12 +153,12 @@ def signin():
     except TimeoutError as e:
         message = str(e)
         status = 500
-    print('user:{}, message:{}, status:{}'.format(user, message, status))
+    GGPrint.print('user:{}, message:{}, status:{}'.format(user, message, status))
     if status is not None:
         return generate_error_output(message, status)
 
     jwt = user.signin(password)
-    print('jwt:{}'.format(jwt))
+    GGPrint.print('jwt:{}'.format(jwt))
 
     if jwt is None:
         message = 'Invalid user id or email or password'
@@ -229,7 +232,7 @@ def report_read():
         try:
             output = request.form['output']
         except Exception as e:
-            print('Exception:{}'.format(e), file=sys.stderr)
+            GGPrint.print('Exception:{}'.format(e), file=sys.stderr)
             output = 'json'
 
     report_sub_dir_path = os.path.join(report_dir_path, '{}'.format(train_id))
@@ -269,7 +272,7 @@ def history_read():
         try:
             output = request.form['output']
         except Exception as e:
-            print('Exception:{}'.format(e), file=sys.stderr)
+            GGPrint.print('Exception:{}'.format(e), file=sys.stderr)
             output = 'json'
 
     history_sub_dir_path = os.path.join(history_dir_path, '{}'.format(train_id))
@@ -300,7 +303,7 @@ def history_read():
     accuracy_csv_path = os.path.join(history_sub_dir_path, 'csv/precisions_accuracy.csv')
     # 3. accuracy_csv
     accuracy_csv = pd.read_csv(accuracy_csv_path)
-    print('len of accuracy_csv:{}'.format(len(accuracy_csv)), file=sys.stderr)
+    GGPrint.print('len of accuracy_csv:{}'.format(len(accuracy_csv)), file=sys.stderr)
 
     return_data = {
         'accuracy_csv': accuracy_csv.values
@@ -319,7 +322,7 @@ def data_set_def_create():
         try:
             output = request.form['output']
         except Exception as e:
-            print('Exception:{}'.format(e), file=sys.stderr)
+            GGPrint.print('Exception:{}'.format(e), file=sys.stderr)
             output = 'json'
 
     if train_id == '':
@@ -437,7 +440,7 @@ def data_set_def_create():
 
     col_names_list_to_check = operation_json['input_data_names']
     col_names_list_to_check.extend([col_name for col_name in operation_json['output_data_names'] if col_name != 'label'])
-    # print('col_names_list_to_check:{}'.format(col_names_list_to_check), file=sys.stderr)
+    # GGPrint.print('col_names_list_to_check:{}'.format(col_names_list_to_check), file=sys.stderr)
 
     import linecache
 
@@ -445,10 +448,10 @@ def data_set_def_create():
     for label, dir_path in enumerate(dir_list):
         # check file_or_dir_list
         cnt = 0
-        print('dir_path:{}'.format(dir_path), file=sys.stderr)
+        GGPrint.print('dir_path:{}'.format(dir_path), file=sys.stderr)
         all_files = list(find_all_files(dir_path))
         n_all_files = len(all_files)
-        # print('all_files:{}'.format(all_files), file=sys.stderr)
+        # GGPrint.print('all_files:{}'.format(all_files), file=sys.stderr)
         data_set_for_label = pd.DataFrame(np.vstack(([all_files], np.asarray([[label, label, 0, 'NOT_IN_USE', 0]] * n_all_files).T)).T,
                                           columns=['data_set_id', 'label', 'sub_label', 'test', 'group', 'checked'])
         data_set_for_label = data_set_for_label.astype(dtype={'label': 'int8',
@@ -458,7 +461,7 @@ def data_set_def_create():
         group_col_index = 4
         checked_col_index = 5
 
-        print('data_set_for_label_head:{}'.format(data_set_for_label.iloc[0:2]), file=sys.stderr)
+        GGPrint.print('data_set_for_label_head:{}'.format(data_set_for_label.iloc[0:2]), file=sys.stderr)
         index_to_check = np.arange(n_all_files)
         np.random.shuffle(index_to_check)
         df_data_set_for_label = None
@@ -470,22 +473,22 @@ def data_set_def_create():
                 assert file_to_check.split('.')[-1] == 'csv'
                 first_data = linecache.getline(file_to_check, 2)
                 linecache.clearcache()
-                # print('file_to_check:{}, label:{}, dir_path:{} with first_data:{}'.format(file_to_check, label,
+                # GGPrint.print('file_to_check:{}, label:{}, dir_path:{} with first_data:{}'.format(file_to_check, label,
                 #                                                                                  dir_path, first_data),
                 #       file=sys.stderr)
                 assert len(first_data) > 0
                 header_line = linecache.getline(file_to_check, 1)
                 header_list = [v.replace('\n', '').replace('\r', '') for v in header_line.split(',')]
                 linecache.clearcache()
-                # print('file_to_check:{}, label:{}, dir_path:{} with header_list:{}'.format(file_to_check, label,
+                # GGPrint.print('file_to_check:{}, label:{}, dir_path:{} with header_list:{}'.format(file_to_check, label,
                 #                                                                                  dir_path, header_list),
                 #       file=sys.stderr)
                 for col_name_to_check in col_names_list_to_check:
-                    # print('header_list:{}, col_name_to_check:{}'.format(header_list, col_name_to_check),
+                    # GGPrint.print('header_list:{}, col_name_to_check:{}'.format(header_list, col_name_to_check),
                     #       file=sys.stderr)
                     assert col_name_to_check in header_list
                 if cnt % 1 == 0:
-                    print('Add csv file_to_check:{}, label:{}, dir_path:{}'.format(file_to_check, label, dir_path), file=sys.stderr)
+                    GGPrint.print('Add csv file_to_check:{}, label:{}, dir_path:{}'.format(file_to_check, label, dir_path), file=sys.stderr)
                 # data_series = pd.DataFrame([[file_to_check, label, label, 0, target_group], 1],
                 #                            columns=['data_set_id', 'label', 'sub_label', 'test', 'group', 'checked'])
                 # if df_data_set_for_label is None:
@@ -504,7 +507,7 @@ def data_set_def_create():
 
             except AssertionError as e:
                 if cnt % 1 == 0:
-                    print('Skip no-csv file_to_check:{}, label:{}, dir_path:{} with error:{}'.format(file_to_check, label, dir_path, e), file=sys.stderr)
+                    GGPrint.print('Skip no-csv file_to_check:{}, label:{}, dir_path:{} with error:{}'.format(file_to_check, label, dir_path, e), file=sys.stderr)
 
             cnt += 1
             # if cnt > 10: exit()
@@ -519,7 +522,7 @@ def data_set_def_create():
         # select test data
         checked_index = data_set_for_label[data_set_for_label['checked'] == 1].index.values
         np.random.shuffle(checked_index)
-        print('checked_index:{}'.format(checked_index), file=sys.stderr)
+        GGPrint.print('checked_index:{}'.format(checked_index), file=sys.stderr)
         data_set_for_label.iloc[checked_index[:n_test_data_files_for_each_label], test_col_index] = 1
         data_set_for_label.iloc[checked_index[:n_test_data_files_for_each_label], group_col_index] = target_group
 
@@ -527,10 +530,10 @@ def data_set_def_create():
 
         # debug
         test_data = data_set_for_label[(data_set_for_label['test'] == 1) & (data_set_for_label['group'] == target_group)].values
-        print('n_test_data_files_for_each_label:{}, test_data:{}'.format(n_test_data_files_for_each_label, test_data), file=sys.stderr)
+        GGPrint.print('n_test_data_files_for_each_label:{}, test_data:{}'.format(n_test_data_files_for_each_label, test_data), file=sys.stderr)
         train_data = data_set_for_label[(data_set_for_label['checked'] == 1) & (data_set_for_label['test'] == 0)
                                         & (data_set_for_label['group'] == target_group)].values
-        print('cnt_has_checked:{}, need_data_files_for_each_label:{}, train_data:{}'.format(cnt_has_checked, need_data_files_for_each_label, train_data), file=sys.stderr)
+        GGPrint.print('cnt_has_checked:{}, need_data_files_for_each_label:{}, train_data:{}'.format(cnt_has_checked, need_data_files_for_each_label, train_data), file=sys.stderr)
 
         if df_data_set_all is None:
             df_data_set_all = data_set_for_label
@@ -670,7 +673,7 @@ def prediction():
         try:
             output = request.form['output']
         except Exception as e:
-            print('Exception:{}'.format(e), file=sys.stderr)
+            GGPrint.print('Exception:{}'.format(e), file=sys.stderr)
             output = 'json'
 
     if train_id == '':
@@ -714,14 +717,14 @@ def prediction():
 
     # exec prediction
     try:
-        # print('input_data_names:{}'.format(operation_json['input_data_names']), file=sys.stderr)
+        # GGPrint.print('input_data_names:{}'.format(operation_json['input_data_names']), file=sys.stderr)
         from smalltrain.model.operation import Operation
         operation = Operation(operation_json)
 
         nn_model.main(operation.params)
     except Exception as e:
         message = 'Exception:{}'.format(e)
-        print(message, file=sys.stderr)
+        GGPrint.print(message, file=sys.stderr)
         return_data = {
             'message': message
         }
@@ -779,8 +782,8 @@ def proc_get():
 
 # check jwt Authorization
 def check_user_from_jwt_header(request):
-    print('/operation/read with request:{}'.format(request))
-    print('/operation/read with request.headers:{}'.format(request.headers))
+    GGPrint.print('/operation/read with request:{}'.format(request))
+    GGPrint.print('/operation/read with request.headers:{}'.format(request.headers))
 
     message = None
     status = None
@@ -788,9 +791,9 @@ def check_user_from_jwt_header(request):
 
     try:
         header_jwt = request.headers['Authorization']
-        print('header_jwt:{}'.format(header_jwt))
+        GGPrint.print('header_jwt:{}'.format(header_jwt))
     except KeyError as e:
-        print('e:{}'.format(e))
+        GGPrint.print('e:{}'.format(e))
         message = 'No JWT in headers'
         status = 400
         return user, message, status
@@ -798,14 +801,14 @@ def check_user_from_jwt_header(request):
     manager = UserManager(db)
     try:
         user = manager.read_with_jwt(header_jwt)
-        print('user:{}'.format(user))
+        GGPrint.print('user:{}'.format(user))
     except UserNotFoundError as e:
         message = str(e)
         status = 404
     except jwt_util.InvalidJWTError as e:
         message = str(e)
         status = 400
-    print('user:{}, message:{}, status:{}'.format(user, message, status))
+    GGPrint.print('user:{}, message:{}, status:{}'.format(user, message, status))
 
     return user, message, status
 

@@ -19,6 +19,9 @@ import multiprocessing as mp
 
 from ggutils.gg_data_base import GGDataBase
 from ggutils.gg_hash import GGHash
+from ggutils.gg_verbosity import GGVerbosePrinting
+
+GGPrint = GGVerbosePrinting(2)
 
 # TRAIN_DATA_SET_FILE_PATH = 'data/train_data_set_item_cnt_normed.csv'
 # TRAIN_DATA_SET_MERGE_TEST_FILE_PATH = 'data/train_data_set_item_cnt_normed_merge_test.csv'
@@ -45,10 +48,10 @@ class ExtendedJSONEncoder(json.JSONEncoder):
 
 def list_to_hash(arg_list):
     json_str = json.dumps(arg_list, cls=ExtendedJSONEncoder)
-    # print('json_str of arg_list:{}'.format(json_str))
+    # GGPrint.print('json_str of arg_list:{}'.format(json_str))
     import hashlib
     data_hash_value = hashlib.sha256(json_str.encode()).hexdigest()
-    # print('data_hash_value:{}'.format(data_hash_value))
+    # GGPrint.print('data_hash_value:{}'.format(data_hash_value))
     return data_hash_value
 
 
@@ -70,11 +73,11 @@ class GGData:
             self._db = GGDataBase.Instance()
             self._db.set_db(setting_file_path='/usr/local/etc/vendor/gg/redis_connection_setting.json', debug_mode=False)
             if refresh:
-                print('refresh with delete group_key:{}'.format(self.group_key))
+                GGPrint.print('refresh with delete group_key:{}'.format(self.group_key))
                 keys = self.get_keys()
                 if keys is not None:
                     for key in keys:
-                        print('refresh with delete key:{}'.format(key))
+                        GGPrint.print('refresh with delete key:{}'.format(key))
                         self._db.delete(key)
                 self._db.delete(self.group_key)
 
@@ -153,9 +156,9 @@ class GGData:
             raise ValueError('self.group_key is None')
             # try to read with name
             pattern = '{}*'.format(self.name)
-            print('try to read with pattern:{}'.format(pattern))
+            GGPrint.print('try to read with pattern:{}'.format(pattern))
             keys = self._db.keys(pattern=pattern)
-            print('read keys:{} with pattern:{}'.format(keys, pattern))
+            GGPrint.print('read keys:{} with pattern:{}'.format(keys, pattern))
             return keys
 
         elif self.use_db == 'Default':
@@ -243,73 +246,73 @@ class GGDataSet:
 
         PREFIX = '[GGDataSet]'
         self.hparams = hparams
-        print('{}TODO init with hparams:{}'.format(PREFIX, hparams))
+        GGPrint.print('{}TODO init with hparams:{}'.format(PREFIX, hparams))
 
         self.debug_mode = debug_mode
         self.prepare_data_mode = prepare_data_mode
         self.model_type = 'CLASSIFICATION'
         if hparams and 'model_type' in hparams.keys():
-            print('{}Use model_type in hparams:{}'.format(PREFIX, hparams['model_type']))
+            GGPrint.print('{}Use model_type in hparams:{}'.format(PREFIX, hparams['model_type']))
             self.model_type = hparams['model_type']
         else:
-            print('{}TODO Use ts_start with default value:{}'.format(PREFIX, self.model_type))
+            GGPrint.print('{}TODO Use ts_start with default value:{}'.format(PREFIX, self.model_type))
 
         self.prediction_mode = prediction_mode
-        print('{}init with prediction_mode:{}'.format(PREFIX, prediction_mode))
+        GGPrint.print('{}init with prediction_mode:{}'.format(PREFIX, prediction_mode))
 
         self.multiprocessing = st.Hyperparameters.DEFAULT_DICT['multiprocessing']
         if hparams and 'multiprocessing' in hparams.keys():
-            print('{}Use multiprocessing in hparams:{}'.format(PREFIX, hparams['multiprocessing']))
+            GGPrint.print('{}Use multiprocessing in hparams:{}'.format(PREFIX, hparams['multiprocessing']))
             self.multiprocessing = hparams['multiprocessing']
         else:
-            print('{}TODO Use multiprocessing with default value:{}'.format(PREFIX, self.multiprocessing))
+            GGPrint.print('{}TODO Use multiprocessing with default value:{}'.format(PREFIX, self.multiprocessing))
 
         self.max_threads = st.Hyperparameters.DEFAULT_DICT['max_threads']
         if hparams and 'max_threads' in hparams.keys():
-            print('{}Use max_threads in hparams:{}'.format(PREFIX, hparams['max_threads']))
+            GGPrint.print('{}Use max_threads in hparams:{}'.format(PREFIX, hparams['max_threads']))
             self.max_threads = hparams['max_threads']
         else:
-            print('{}TODO Use max_threads with default value:{}'.format(PREFIX, self.max_threads))
+            GGPrint.print('{}TODO Use max_threads with default value:{}'.format(PREFIX, self.max_threads))
 
-        print('{}multiprocessing: {}'.format(PREFIX, self.multiprocessing))
-        print('{}cpu_count: {}, max_threads: {}'.format(PREFIX, mp.cpu_count(), self.max_threads))
+        GGPrint.print('{}multiprocessing: {}'.format(PREFIX, self.multiprocessing))
+        GGPrint.print('{}cpu_count: {}, max_threads: {}'.format(PREFIX, mp.cpu_count(), self.max_threads))
         if self.multiprocessing and self.max_threads > 1:
             self.thread_dict = Manager().dict()
 
         # about mask_rate
         self.mask_rate = None
         if hparams and 'mask_rate' in hparams.keys():
-            print('{}Use mask_rate in hparams:{}'.format(PREFIX, hparams['mask_rate']))
+            GGPrint.print('{}Use mask_rate in hparams:{}'.format(PREFIX, hparams['mask_rate']))
             self.mask_rate = hparams['mask_rate']
         if self.mask_rate is not None:
             try:
                 self.mask_rate = float(self.mask_rate)
             except ValueError:
-                print('{}mask_rate is not float type. reset with None'.format(PREFIX))
+                GGPrint.print('{}mask_rate is not float type. reset with None'.format(PREFIX))
                 self.mask_rate = None
 
         # (For compatibility with ver0.1.1 ```col_index_to_mask``` and ver0.1.2 ```ch_index_to_mask``` )
 
         self.col_index_to_mask = None
         if hparams and 'col_index_to_mask' in hparams.keys():
-            print('{}Use col_index_to_mask in hparams:{}'.format(PREFIX, hparams['col_index_to_mask']))
+            GGPrint.print('{}Use col_index_to_mask in hparams:{}'.format(PREFIX, hparams['col_index_to_mask']))
             self.col_index_to_mask = hparams['col_index_to_mask']
 
         # check both mask_rate and col_index_to_mask
         if self.mask_rate is None or self.col_index_to_mask is None:
-            print('{}Set both mask_rate and col_index_to_mask None because one of them is None'.format(PREFIX))
+            GGPrint.print('{}Set both mask_rate and col_index_to_mask None because one of them is None'.format(PREFIX))
             self.mask_rate = None
             self.col_index_to_mask = None
 
         # set ch_index_to_mask
         self.ch_index_to_mask = self.col_index_to_mask # (For compatibility with ver0.1.1 ```col_index_to_mask``` and ver0.1.2 ```ch_index_to_mask``` )
         if hparams and 'ch_index_to_mask' in hparams.keys():
-            print('{}Use ch_index_to_mask in hparams:{}'.format(PREFIX, hparams['ch_index_to_mask']))
+            GGPrint.print('{}Use ch_index_to_mask in hparams:{}'.format(PREFIX, hparams['ch_index_to_mask']))
             self.ch_index_to_mask = hparams['ch_index_to_mask']
 
         # check both mask_rate and ch_index_to_mask
         if self.mask_rate is None or self.ch_index_to_mask is None:
-            print('{}Set both mask_rate and ch_index_to_mask None because one of them is None'.format(PREFIX))
+            GGPrint.print('{}Set both mask_rate and ch_index_to_mask None because one of them is None'.format(PREFIX))
             self.mask_rate = None
             self.ch_index_to_mask = None
 
@@ -319,24 +322,24 @@ class GGDataSet:
         # about skip_invalid_data
         self.skip_invalid_data = None
         if hparams and 'skip_invalid_data' in hparams.keys():
-            print('{}Use skip_invalid_data in hparams:{}'.format(PREFIX, hparams['skip_invalid_data']))
+            GGPrint.print('{}Use skip_invalid_data in hparams:{}'.format(PREFIX, hparams['skip_invalid_data']))
             self.skip_invalid_data = hparams['skip_invalid_data']
         self.skip_invalid_data = (self.skip_invalid_data is not None and self.skip_invalid_data)
 
         # about skip_invalid_data
         self.valid_data_range = None
         if hparams and 'valid_data_range' in hparams.keys():
-            print('{}Use valid_data_range in hparams:{}'.format(PREFIX, hparams['valid_data_range']))
+            GGPrint.print('{}Use valid_data_range in hparams:{}'.format(PREFIX, hparams['valid_data_range']))
             self.valid_data_range = hparams['valid_data_range']
 
 
         # about multi_resolution_channels
         self.multi_resolution_channels = 0
         if hparams and 'multi_resolution_channels' in hparams.keys():
-            print('{}Use multi_resolution_channels in hparams:{}'.format(PREFIX, hparams['multi_resolution_channels']))
+            GGPrint.print('{}Use multi_resolution_channels in hparams:{}'.format(PREFIX, hparams['multi_resolution_channels']))
             self.multi_resolution_channels = hparams['multi_resolution_channels']
         else:
-            print('{}TODO Use multi_resolution_channels with default value:{}'.format(PREFIX, self.multi_resolution_channels))
+            GGPrint.print('{}TODO Use multi_resolution_channels with default value:{}'.format(PREFIX, self.multi_resolution_channels))
 
         # set decrease_resolution_ratio or decrease_resolution_ratio_list
         self.decrease_resolution_ratio_list = None
@@ -344,25 +347,25 @@ class GGDataSet:
             # 1. decrease_resolution_ratio
             self.decrease_resolution_ratio = DEFAULT_DECREASE_RESOLUTION_RATIO
             if hparams and 'decrease_resolution_ratio' in hparams.keys():
-                print('{}Use decrease_resolution_ratio in hparams:{}'.format(PREFIX, hparams['decrease_resolution_ratio']))
+                GGPrint.print('{}Use decrease_resolution_ratio in hparams:{}'.format(PREFIX, hparams['decrease_resolution_ratio']))
                 self.decrease_resolution_ratio = hparams['decrease_resolution_ratio']
             else:
-                print('{}TODO Use decrease_resolution_ratio with default value:{}'.format(PREFIX, self.decrease_resolution_ratio))
+                GGPrint.print('{}TODO Use decrease_resolution_ratio with default value:{}'.format(PREFIX, self.decrease_resolution_ratio))
 
             # 2. decrease_resolution_ratio_list
             if hparams and 'decrease_resolution_ratio_list' in hparams.keys():
-                print('{}Use decrease_resolution_ratio_list in hparams:{}'.format(PREFIX, hparams['decrease_resolution_ratio_list']))
+                GGPrint.print('{}Use decrease_resolution_ratio_list in hparams:{}'.format(PREFIX, hparams['decrease_resolution_ratio_list']))
                 self.decrease_resolution_ratio_list = hparams['decrease_resolution_ratio_list']
             if self.decrease_resolution_ratio_list is None:
-                print('{}TODO decrease_resolution_ratio_list is set with decrease_resolution_ratio:{} and multi_resolution_channels:{}'.format(PREFIX, self.decrease_resolution_ratio, self.multi_resolution_channels))
+                GGPrint.print('{}TODO decrease_resolution_ratio_list is set with decrease_resolution_ratio:{} and multi_resolution_channels:{}'.format(PREFIX, self.decrease_resolution_ratio, self.multi_resolution_channels))
                 self.decrease_resolution_ratio_list = [int(math.pow(self.decrease_resolution_ratio, extend_level)) for extend_level in range(1, self.multi_resolution_channels + 1)]
-                print('{}DONE decrease_resolution_ratio_list is set {}'.format(PREFIX, self.decrease_resolution_ratio_list))
+                GGPrint.print('{}DONE decrease_resolution_ratio_list is set {}'.format(PREFIX, self.decrease_resolution_ratio_list))
 
         if hparams and 'input_data_names' in hparams.keys():
-            print('{}Use input_data_names in hparams:{}'.format(PREFIX, hparams['input_data_names']))
+            GGPrint.print('{}Use input_data_names in hparams:{}'.format(PREFIX, hparams['input_data_names']))
             self.input_data_names = hparams['input_data_names']
         else:
-            print('{}Error no input_data_names'.format(PREFIX))
+            GGPrint.print('{}Error no input_data_names'.format(PREFIX))
             exit(1)
 
         self.col_size = len(self.input_data_names)
@@ -370,53 +373,53 @@ class GGDataSet:
         # about channels to be extended with multi_resolution_channels
         self.input_data_names_to_be_extended = None
         if hparams and 'input_data_names_to_be_extended' in hparams.keys():
-            print('{}Use input_data_names_to_be_extended in hparams:{}'.format(PREFIX, hparams['input_data_names_to_be_extended']))
+            GGPrint.print('{}Use input_data_names_to_be_extended in hparams:{}'.format(PREFIX, hparams['input_data_names_to_be_extended']))
             self.input_data_names_to_be_extended = hparams['input_data_names_to_be_extended']
             if self.input_data_names_to_be_extended and self.input_data_names_to_be_extended is not None:
                 self.col_size += len(self.input_data_names_to_be_extended) * self.multi_resolution_channels
         elif self.multi_resolution_channels > 0:
             self.input_data_names_to_be_extended = self.input_data_names
-            print('{}Use input_data_names_to_be_extended with all input_data_names:{}'.format(PREFIX, self.input_data_names))
+            GGPrint.print('{}Use input_data_names_to_be_extended with all input_data_names:{}'.format(PREFIX, self.input_data_names))
             self.col_size = len(self.input_data_names) *(1 + self.multi_resolution_channels)
         else:
-            print('{}No input_data_names_to_be_extended'.format(PREFIX))
+            GGPrint.print('{}No input_data_names_to_be_extended'.format(PREFIX))
 
 
-        print('self.col_size:{}'.format(self.col_size))
+        GGPrint.print('self.col_size:{}'.format(self.col_size))
 
 
         if hparams and 'output_data_names' in hparams.keys():
-            print('{}Use output_data_names in hparams:{}'.format(PREFIX, hparams['output_data_names']))
+            GGPrint.print('{}Use output_data_names in hparams:{}'.format(PREFIX, hparams['output_data_names']))
             self.output_data_names = hparams['output_data_names']
         else:
-            print('{}Error no output_data_names'.format(PREFIX))
+            GGPrint.print('{}Error no output_data_names'.format(PREFIX))
             exit(1)
 
 
         # Whether Has to complement the value before ts starts or not(Default:True)
         self.has_to_complement_before = True
         if hparams and 'has_to_complement_before' in hparams.keys():
-            print('{}Use has_to_complement_before in hparams:{}'.format(PREFIX, hparams['has_to_complement_before']))
+            GGPrint.print('{}Use has_to_complement_before in hparams:{}'.format(PREFIX, hparams['has_to_complement_before']))
             self.has_to_complement_before = hparams['has_to_complement_before']
         if self.has_to_complement_before is None:
             self.has_to_complement_before = True
-            print('{}Use has_to_complement_before with default value:{}'.format(PREFIX, self.has_to_complement_before))
+            GGPrint.print('{}Use has_to_complement_before with default value:{}'.format(PREFIX, self.has_to_complement_before))
 
         # S (For compatibility with ver0.1.1 ```complement_ts``` and ver0.1.2 ```complement_input_data``` )
         self.complement_ts = None
         if hparams and 'complement_ts' in hparams.keys():
-            print('{}Use complement_ts in hparams:{}'.format(PREFIX, hparams['complement_ts']))
+            GGPrint.print('{}Use complement_ts in hparams:{}'.format(PREFIX, hparams['complement_ts']))
             self.complement_ts = hparams['complement_ts']
         else:
-            print('{}Use complement_ts with default value:{}'.format(PREFIX, self.complement_ts))
+            GGPrint.print('{}Use complement_ts with default value:{}'.format(PREFIX, self.complement_ts))
         # E (For compatibility with ver0.1.1 ```complement_ts``` and ver0.1.2 ```complement_input_data``` )
 
         self.complement_input_data = self.complement_ts # (For compatibility with ver0.1.1 ```complement_ts``` and ver0.1.2 ```complement_input_data``` )
         if hparams and 'complement_input_data' in hparams.keys():
-            print('{}Use complement_input_data in hparams:{}'.format(PREFIX, hparams['complement_input_data']))
+            GGPrint.print('{}Use complement_input_data in hparams:{}'.format(PREFIX, hparams['complement_input_data']))
             self.complement_input_data = hparams['complement_input_data']
         else:
-            print('{}Use complement_input_data with default value:{}'.format(PREFIX, self.complement_input_data))
+            GGPrint.print('{}Use complement_input_data with default value:{}'.format(PREFIX, self.complement_input_data))
 
         # S (For compatibility with ver0.1.1 ```complement_ts``` and ver0.1.2 ```complement_input_data``` )
         if self.complement_input_data is None:
@@ -425,14 +428,14 @@ class GGDataSet:
 
         self.data_dir_path = '/var/data/'
         if hparams and 'data_dir_path' in hparams.keys():
-            print('{}Use data_dir_path in hparams:{}'.format(PREFIX, hparams['data_dir_path']))
+            GGPrint.print('{}Use data_dir_path in hparams:{}'.format(PREFIX, hparams['data_dir_path']))
             self.data_dir_path = hparams['data_dir_path']
         else:
-            print('{}Use data_dir_path with default value:{}'.format(PREFIX, self.data_dir_path))
+            GGPrint.print('{}Use data_dir_path with default value:{}'.format(PREFIX, self.data_dir_path))
 
         self.data_set_def_path = None
         if hparams and 'data_set_def_path' in hparams.keys():
-            print('{}Use data_set_def_path in hparams:{}'.format(PREFIX, hparams['data_set_def_path']))
+            GGPrint.print('{}Use data_set_def_path in hparams:{}'.format(PREFIX, hparams['data_set_def_path']))
             self.data_set_def_path = hparams['data_set_def_path']
 
             try:
@@ -440,76 +443,76 @@ class GGDataSet:
                 self.df_data_set_def = pd.read_csv(self.data_set_def_path)
                 # _debug = self.df_data_set_def['data_set_id']
             except ValueError as e:
-                print('{}Can not read df_data_set_def with data_set_def_path: {}'.format(PREFIX, self.data_set_def_path))
+                GGPrint.print('{}Can not read df_data_set_def with data_set_def_path: {}'.format(PREFIX, self.data_set_def_path))
                 self.df_data_set_def = None
         else:
-            print('{}Use data_set_def_path with default value:{}, and df_data_set_def set None'.format(PREFIX, self.data_set_def_path))
+            GGPrint.print('{}Use data_set_def_path with default value:{}, and df_data_set_def set None'.format(PREFIX, self.data_set_def_path))
             self.df_data_set_def = None
 
         self.annotation_col_names = None
         if hparams and 'annotation_col_names' in hparams.keys():
-            print('{}Use annotation_col_names in hparams:{}'.format(PREFIX, hparams['annotation_col_names']))
+            GGPrint.print('{}Use annotation_col_names in hparams:{}'.format(PREFIX, hparams['annotation_col_names']))
             self.annotation_col_names = hparams['annotation_col_names']
 
         self.target_group = None
         if hparams and 'target_group' in hparams.keys():
-            print('{}Use target_group in hparams:{}'.format(PREFIX, hparams['target_group']))
+            GGPrint.print('{}Use target_group in hparams:{}'.format(PREFIX, hparams['target_group']))
             self.target_group = hparams['target_group']
 
         self.use_sub_label = False
         if hparams and 'use_sub_label' in hparams.keys():
-            print('{}Use use_sub_label in hparams:{}'.format(PREFIX, hparams['use_sub_label']))
+            GGPrint.print('{}Use use_sub_label in hparams:{}'.format(PREFIX, hparams['use_sub_label']))
             self.target_group = hparams['use_sub_label']
 
         self.test_only_mode = False
         if hparams and 'test_only_mode' in hparams.keys():
-            print('{}Use test_only_mode in hparams:{}'.format(PREFIX, hparams['test_only_mode']))
+            GGPrint.print('{}Use test_only_mode in hparams:{}'.format(PREFIX, hparams['test_only_mode']))
             self.test_only_mode = hparams['test_only_mode']
         else:
-            print('{}TODO Use test_only_mode with default value:{}'.format(PREFIX, self.test_only_mode))
+            GGPrint.print('{}TODO Use test_only_mode with default value:{}'.format(PREFIX, self.test_only_mode))
 
         # Set output_classes if given from init model. see #51
         self.output_classes = None
         if hparams and 'output_classes' in hparams.keys():
-            print('{}Use output_classes in hparams:{}'.format(PREFIX, hparams['output_classes']))
+            GGPrint.print('{}Use output_classes in hparams:{}'.format(PREFIX, hparams['output_classes']))
             self.output_classes = hparams['output_classes']
         # if self.output_classes is still None,  then will be set from data set.
 
         # use_cache
         self.use_cache = False
         if hparams and 'use_cache' in hparams.keys():
-            print('{}Use use_cache in hparams:{}'.format(PREFIX, hparams['use_cache']))
+            GGPrint.print('{}Use use_cache in hparams:{}'.format(PREFIX, hparams['use_cache']))
             self.use_cache = hparams['use_cache']
         if self.use_cache is None:
             self.use_cache = False
-            print('{}Use use_cache with default value:{}'.format(PREFIX, self.use_cache))
+            GGPrint.print('{}Use use_cache with default value:{}'.format(PREFIX, self.use_cache))
 
         # cache_db_host
         self.cache_db_host = 'localhost'
         if hparams and 'cache_db_host' in hparams.keys():
-            print('{}Use cache_db_host in hparams:{}'.format(PREFIX, hparams['cache_db_host']))
+            GGPrint.print('{}Use cache_db_host in hparams:{}'.format(PREFIX, hparams['cache_db_host']))
             self.cache_db_host = hparams['cache_db_host']
         if self.cache_db_host is None:
             self.cache_db_host = 'localhost'
-            print('{}Use cache_db_host with default value:{}'.format(PREFIX, self.cache_db_host))
+            GGPrint.print('{}Use cache_db_host with default value:{}'.format(PREFIX, self.cache_db_host))
 
         # data set id for cache
         self.cache_data_set_id = None
         if hparams and 'cache_data_set_id' in hparams.keys():
-            print('{}Use cache_data_set_id in hparams:{}'.format(PREFIX, hparams['cache_data_set_id']))
+            GGPrint.print('{}Use cache_data_set_id in hparams:{}'.format(PREFIX, hparams['cache_data_set_id']))
             self.cache_data_set_id = hparams['cache_data_set_id']
         if self.cache_data_set_id is None:
             self.cache_data_set_id = hparams['train_id']
-            print('{}Use cache_data_set_id with default value:{}'.format(PREFIX, self.cache_data_set_id))
+            GGPrint.print('{}Use cache_data_set_id with default value:{}'.format(PREFIX, self.cache_data_set_id))
         self.refresh_cache_data_set = False
         if hparams and 'refresh_cache_data_set' in hparams.keys():
-            print('{}Use refresh_cache_data_set in hparams:{}'.format(PREFIX, hparams['refresh_cache_data_set']))
+            GGPrint.print('{}Use refresh_cache_data_set in hparams:{}'.format(PREFIX, hparams['refresh_cache_data_set']))
             self.refresh_cache_data_set = hparams['refresh_cache_data_set']
         if self.refresh_cache_data_set is None:
             self.refresh_cache_data_set = False
-            print('{}Use refresh_cache_data_set with default value:{}'.format(PREFIX, self.refresh_cache_data_set))
+            GGPrint.print('{}Use refresh_cache_data_set with default value:{}'.format(PREFIX, self.refresh_cache_data_set))
 
-        print('{}DONE init process defined in GGDataSet'.format(PREFIX))
+        GGPrint.print('{}DONE init process defined in GGDataSet'.format(PREFIX))
 
         return
 
@@ -525,9 +528,9 @@ class GGDataSet:
             assert (input_data.get_size() > 0)
             assert (output_data.get_size() > 0)
         except AssertionError as e:
-            print(e)
-            # print('[set_data]input_data:{}'.format(input_data[:5]))
-            # print('[set_data]output_data:{}'.format(output_data[:5]))
+            GGPrint.print(e)
+            # GGPrint.print('[set_data]input_data:{}'.format(input_data[:5]))
+            # GGPrint.print('[set_data]output_data:{}'.format(output_data[:5]))
             raise e
         self.input_data = input_data
         self.output_data = output_data
@@ -535,15 +538,15 @@ class GGDataSet:
         self.data_id_set = data_id_set
         self.annotation_data = annotation_data
         self.masked_input_data = None
-        print('self.mask_rate:{}'.format(self.mask_rate))
+        GGPrint.print('self.mask_rate:{}'.format(self.mask_rate))
         if self.mask_rate is not None and self.mask_rate > 0:
-            print('generate masked_input_data')
+            GGPrint.print('generate masked_input_data')
             self.masked_input_data = self.mask_data(self.input_data)
-            if self.debug_mode: print(self.masked_input_data)
+            if self.debug_mode: GGPrint.print(self.masked_input_data)
         if self.debug_mode:
-            print('[set_data]output_data:{}'.format(self.output_data.get(range(5))))
-            print('[set_data]data_id_set:{}'.format(None if data_id_set is None else self.data_id_set.get(range(5))))
-            print('[set_data]annotation_data:{}'.format(None if annotation_data is None else self.annotation_data.get(range(5))))
+            GGPrint.print('[set_data]output_data:{}'.format(self.output_data.get(range(5))))
+            GGPrint.print('[set_data]data_id_set:{}'.format(None if data_id_set is None else self.data_id_set.get(range(5))))
+            GGPrint.print('[set_data]annotation_data:{}'.format(None if annotation_data is None else self.annotation_data.get(range(5))))
 
     def mask_data(self, input_data):
         ret_data = self.construct_data_ins(name='masked_input_data_{}'.format(self.cache_data_set_id), db_host=self.cache_db_host, refresh=True)
@@ -552,7 +555,7 @@ class GGDataSet:
         debug_first = True
         for key in keys:
             value = input_data.get(key)
-            if debug_first: print('mask_data with key:{}, value:{}'.format(key, value))
+            if debug_first: GGPrint.print('mask_data with key:{}, value:{}'.format(key, value))
             if self.ch_index_to_mask is not None:
                 value[:, self.ch_index_to_mask] = np.ones(
                     [value.shape[0], len(self.ch_index_to_mask)],
@@ -581,8 +584,8 @@ class GGDataSet:
             random.shuffle(_list)
             # Repeat list in order to select the sub list having batch_size elements
             self.train_batch_index_list = np.array(_list * (2 + int(batch_size / len(self.train_index_list))), dtype=int)
-            # print('self.train_batch_index_list:{}'.format(list(self.train_batch_index_list)))
-            # print('self.train_index_list:{}'.format(list(self.train_index_list)))
+            # GGPrint.print('self.train_batch_index_list:{}'.format(list(self.train_batch_index_list)))
+            # GGPrint.print('self.train_index_list:{}'.format(list(self.train_index_list)))
 
         try:
             if self.train_batch_index_list is None:
@@ -590,10 +593,10 @@ class GGDataSet:
         except AttributeError:
             _generate_train_batch_index_list()
 
-        # print('len(self.train_batch_index_list):{}'.format(len(self.train_batch_index_list)))
+        # GGPrint.print('len(self.train_batch_index_list):{}'.format(len(self.train_batch_index_list)))
 
         if self.mask_rate is not None and self.mask_rate > np.random.rand():
-            if self.debug_mode: print('Use masked_input_data')
+            if self.debug_mode: GGPrint.print('Use masked_input_data')
             input_data = self.masked_input_data
         else:
             input_data = self.input_data
@@ -605,25 +608,25 @@ class GGDataSet:
             next_index = batch_size
 
         # debug
-        # print('self.train_batch_index_from:{}, next_index:{}, train_index_size:{}'.format(self.train_batch_index_from, next_index, train_index_size))
-        # print('len(self.train_index_list):', len(self.train_index_list))
-        # print('len(self.train_batch_index_list):', len(self.train_batch_index_list))
-        # print('self.train_batch_index_list[self.train_batch_index_from:next_index]:', self.train_batch_index_list[self.train_batch_index_from:next_index])
-        # print('self.train_index_list[self.train_batch_index_list[self.train_batch_index_from:next_index]]:', self.train_index_list[self.train_batch_index_list[self.train_batch_index_from:next_index]])
+        # GGPrint.print('self.train_batch_index_from:{}, next_index:{}, train_index_size:{}'.format(self.train_batch_index_from, next_index, train_index_size))
+        # GGPrint.print('len(self.train_index_list):', len(self.train_index_list))
+        # GGPrint.print('len(self.train_batch_index_list):', len(self.train_batch_index_list))
+        # GGPrint.print('self.train_batch_index_list[self.train_batch_index_from:next_index]:', self.train_batch_index_list[self.train_batch_index_from:next_index])
+        # GGPrint.print('self.train_index_list[self.train_batch_index_list[self.train_batch_index_from:next_index]]:', self.train_index_list[self.train_batch_index_list[self.train_batch_index_from:next_index]])
 
         _train_index_list = self.train_index_list[self.train_batch_index_list[self.train_batch_index_from:next_index]]
         ret_input_data = input_data.get(_train_index_list)
         ret_output_data = self.output_data.get(_train_index_list)
         if self.model_type == 'REGRESSION': ret_output_data = ret_output_data.reshape(-1)
 
-        # print('len of self.train_batch_index_list[self.train_batch_index_from:next_index]:{}'.format(len(self.train_batch_index_list[self.train_batch_index_from:next_index])))
-        # print('self.train_batch_index_list[self.train_batch_index_from:next_index]:{}'.format(self.train_batch_index_list[self.train_batch_index_from:next_index]))
+        # GGPrint.print('len of self.train_batch_index_list[self.train_batch_index_from:next_index]:{}'.format(len(self.train_batch_index_list[self.train_batch_index_from:next_index])))
+        # GGPrint.print('self.train_batch_index_list[self.train_batch_index_from:next_index]:{}'.format(self.train_batch_index_list[self.train_batch_index_from:next_index]))
 
         self.train_batch_index_from = next_index
         if self.train_batch_index_from >= train_index_size:
             self.train_batch_index_from -= train_index_size
 
-        # print('len(ret_input_data):', len(ret_input_data))
+        # GGPrint.print('len(ret_input_data):', len(ret_input_data))
         assert len(ret_input_data) == batch_size
         assert len(ret_output_data) == batch_size
 
@@ -636,8 +639,8 @@ class GGDataSet:
             _list = list(range(len(self.test_index_list)))
             # Repeat list in order to select the sub list having batch_size elements
             self.test_batch_index_list = np.array(_list * (2 + int(batch_size / len(self.test_index_list))), dtype=int)
-            # print('self.test_batch_index_list:{}'.format(list(self.test_batch_index_list)))
-            # print('self.test_index_list:{}'.format(list(self.test_index_list)))
+            # GGPrint.print('self.test_batch_index_list:{}'.format(list(self.test_batch_index_list)))
+            # GGPrint.print('self.test_index_list:{}'.format(list(self.test_index_list)))
 
         try:
             if self.test_batch_index_list is None:
@@ -652,7 +655,7 @@ class GGDataSet:
             next_index = batch_size
 
         # debug
-        print('self.test_batch_index_from:{}, next_index:{}, test_index_size:{}'.format(self.test_batch_index_from, next_index, test_index_size))
+        GGPrint.print('self.test_batch_index_from:{}, next_index:{}, test_index_size:{}'.format(self.test_batch_index_from, next_index, test_index_size))
         _test_index_list = self.test_index_list[self.test_batch_index_list[self.test_batch_index_from:next_index]]
         ret_input_data = self.input_data.get(_test_index_list)
         ret_output_data = self.output_data.get(_test_index_list)
@@ -662,7 +665,7 @@ class GGDataSet:
         if self.test_batch_index_from >= test_index_size:
             self.test_batch_index_from -= test_index_size
 
-        print('len(ret_input_data):', len(ret_input_data))
+        GGPrint.print('len(ret_input_data):', len(ret_input_data))
         assert len(ret_input_data) == batch_size
         assert len(ret_output_data) == batch_size
 
@@ -692,7 +695,7 @@ class GGDataSet:
                 # if (file[-len(data_file_postfix):] == data_file_postfix):
                 for _file_str in _data_set_file_src:
                     if _file_str in file:
-                        # print('k:{}, v:{}'.format(_file_str, file))
+                        # GGPrint.print('k:{}, v:{}'.format(_file_str, file))
                         data_set_file_dict[_file_str] = file
 
         except FileNotFoundError:
@@ -705,27 +708,27 @@ class GGDataSet:
 
 
     def generate_input_output_data(self):
-        print('TODO generate_input_output_data')
+        GGPrint.print('TODO generate_input_output_data')
 
         dir_path = self.data_dir_path
         # data_set_file_list = self.get_data_set_file_list(dir_path)
         data_set_file_dict = self.get_data_set_file_dict(dir_path)
-        print('data_set_file_dict:{} got from dir_path:{}'.format(data_set_file_dict, dir_path))
+        GGPrint.print('data_set_file_dict:{} got from dir_path:{}'.format(data_set_file_dict, dir_path))
         _grid = [[k, data_set_file_dict[k]] for k in data_set_file_dict.keys()]
         _df_data_set_file = pd.DataFrame(_grid, columns=(['data_set_id', 'file_path']))
 
-        print('### _df_data_set_file ###')
-        print(_df_data_set_file)
+        GGPrint.print('### _df_data_set_file ###')
+        GGPrint.print(_df_data_set_file)
 
         # merge
         self.df_data_set_def = pd.merge(self.df_data_set_def, _df_data_set_file, how='left')
-        print('len df_data_set_def before select target_group:{}'.format(len(self.df_data_set_def)))
+        GGPrint.print('len df_data_set_def before select target_group:{}'.format(len(self.df_data_set_def)))
 
         # select target_group
         if self.target_group:
             self.df_data_set_def = self.df_data_set_def[self.df_data_set_def["group"] == self.target_group]
             self.df_data_set_def = self.df_data_set_def.reset_index()
-        print('len df_data_set_def after select target_group:{}'.format(len(self.df_data_set_def)))
+        GGPrint.print('len df_data_set_def after select target_group:{}'.format(len(self.df_data_set_def)))
 
         data_set_cnt = len(self.df_data_set_def)
 
@@ -736,7 +739,7 @@ class GGDataSet:
             if self.output_classes is None:
                 if self.model_type == 'CLASSIFICATION':
                     unique_labels = self.df_data_set_def["label"].unique()
-                    print('unique_labels:{}'.format(unique_labels))
+                    GGPrint.print('unique_labels:{}'.format(unique_labels))
                     _max_label = self.df_data_set_def["label"].max()
                     self.output_classes = max(_max_label + 1, len(unique_labels))
                     assert self.output_classes > 0
@@ -751,35 +754,35 @@ class GGDataSet:
             else:
                 self.target_label_in_use = self.df_data_set_def['label'].unique()
             self.target_label_in_use.sort()
-            print('use_sub_label:{}, target_label_in_use:{}'.format(self.use_sub_label, self.target_label_in_use))
+            GGPrint.print('use_sub_label:{}, target_label_in_use:{}'.format(self.use_sub_label, self.target_label_in_use))
         else:
             # set output_classes if not given with hyper parameter
             if self.output_classes is None and self.model_type == 'CLASSIFICATION':
                     raise Exception('TODO define n_labels')
 
-        # print('n_labels:{}'.format(self.n_labels))
-        print('output_classes:{}'.format(self.output_classes))
+        # GGPrint.print('n_labels:{}'.format(self.n_labels))
+        GGPrint.print('output_classes:{}'.format(self.output_classes))
 
         # debug
         # train_data_cnt_per_labels = self.train_data_cnt_per_labels
         # test_data_cnt_per_labels = self.test_data_cnt_per_labels
 
         input_data_names = self.input_data_names
-        print('input_data_names:{}'.format(input_data_names))
+        GGPrint.print('input_data_names:{}'.format(input_data_names))
 
 
         if self.refresh_cache_data_set:
             self.generate_cache_data()
         else:
             if not self.read_cache_data():
-                print('have to generate_cache_data')
+                GGPrint.print('have to generate_cache_data')
                 self.generate_cache_data()
 
         return self.input_data, self.output_data
 
 
     def read_cache_data(self):
-        print('TODO read_cache_data')
+        GGPrint.print('TODO read_cache_data')
         self.input_data = self.construct_data_ins(name='input_data_{}'.format(self.cache_data_set_id), db_host=self.cache_db_host, refresh=False)
         self.output_data = self.construct_data_ins(name='output_data_{}'.format(self.cache_data_set_id), db_host=self.cache_db_host, refresh=False)
         self.data_id_set = self.construct_data_ins(name='data_id_set_{}'.format(self.cache_data_set_id), db_host=self.cache_db_host, refresh=False)
@@ -793,22 +796,22 @@ class GGDataSet:
 
         for name, data_ins_to_check in self.get_data_ins_dict_to_check_cached().items():
             try:
-                print('data_ins_to_check:{}, checking data_ins_to_check.get_size():{} > 0'.format(name, data_ins_to_check.get_size()))
+                GGPrint.print('data_ins_to_check:{}, checking data_ins_to_check.get_size():{} > 0'.format(name, data_ins_to_check.get_size()))
                 assert data_ins_to_check.get_size() > 0
             except Exception as e:
-                print('read_cache_data failed with error:{} with instance:{}'.format(e, name))
+                GGPrint.print('read_cache_data failed with error:{} with instance:{}'.format(e, name))
                 return False
 
         for name, cache_ins_to_check in {'test_index_list': self.test_index_list, 'train_index_list': self.train_index_list}.items():
             try:
-                print('cache_ins_to_check:{}, checking len(cache_ins_to_check):{} > 0'.format(name, len(cache_ins_to_check)))
+                GGPrint.print('cache_ins_to_check:{}, checking len(cache_ins_to_check):{} > 0'.format(name, len(cache_ins_to_check)))
                 assert len(cache_ins_to_check) > 0
             except Exception as e:
-                print('read_cache_data failed with error:{} with instance:{}'.format(e, name))
+                GGPrint.print('read_cache_data failed with error:{} with instance:{}'.format(e, name))
                 return False
 
         self.data_size = self.input_data.get_size()
-        print('has_read with data_size:{}'.format(self.data_size))
+        GGPrint.print('has_read with data_size:{}'.format(self.data_size))
         return True
 
 
@@ -828,14 +831,14 @@ class GGDataSet:
 
         # single thread processing
         if (not self.multiprocessing) or self.max_threads <= 1:
-            print('set_data_ins single thread processing with data_index:{}'.format(data_index))
+            GGPrint.print('set_data_ins single thread processing with data_index:{}'.format(data_index))
             return data_ins.set(data_index, data_value)
 
         # multi thread processing
         thread_wait_time = 0.01
         working_threads = len(self.thread_dict)
         while working_threads >= self.max_threads:
-            print('multiprocessing waiting for {}sec for thread with data_ins.name:{}, data_index:{} starts. working_threads:{} / max_threads: {}'.format(
+            GGPrint.print('multiprocessing waiting for {}sec for thread with data_ins.name:{}, data_index:{} starts. working_threads:{} / max_threads: {}'.format(
                 thread_wait_time, data_ins.name, data_index, working_threads, self.max_threads))
             time.sleep(thread_wait_time)
             thread_wait_time = min(1.0, thread_wait_time * 2.0)
@@ -940,9 +943,9 @@ class GGDataSet:
         _report_path = _report_path.replace('##POSTFIX##', '_{}'.format(postfix))
 
         # deug
-        # print('##### S output_data #####')
-        # print(output_data[:3])
-        # print('##### E output_data #####')
+        # GGPrint.print('##### S output_data #####')
+        # GGPrint.print(output_data[:3])
+        # GGPrint.print('##### E output_data #####')
 
         np.savetxt(_report_path, output_data, delimiter=',')
         # if self.cloud_root: upload_to_cloud(_report_path, self.cloud_root, self.save_root_dir)

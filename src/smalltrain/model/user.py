@@ -9,6 +9,9 @@ from datetime import timedelta
 
 from smalltrain.utils.gg_mongo_data_base import GGMongoDataBase
 import smalltrain.utils.jwt_util as jwt_util
+from ggutils.gg_verbosity import GGVerbosePrinting
+
+GGPrint = GGVerbosePrinting(2)
 
 EXPIRATION_HOURS_TO = 1  # TODO
 
@@ -32,7 +35,7 @@ class UserManager:
 
     def read(self, user_id):
         _user_json = self._db.read_with_group_key(User.group_key, user_id)
-        # print('[read]_user_json:{}'.format(_user_json))
+        # GGPrint.print('[read]_user_json:{}'.format(_user_json))
         if _user_json is None:
             return None
         user = User()
@@ -41,7 +44,7 @@ class UserManager:
 
     def read_all(self):
         keys = self._db.keys(group_key=User.group_key)
-        print('keys:{}'.format(keys))
+        GGPrint.print('keys:{}'.format(keys))
         all_users = [self.read(key) for key in keys]
         return all_users
 
@@ -61,7 +64,7 @@ class UserManager:
     def check_password(self, user_id, password_to_check):
         user = self.read(user_id=user_id)
         if user is None:
-            print('User not fount with user_id:{}'.format(user_id))
+            GGPrint.print('User not fount with user_id:{}'.format(user_id))
             return None
         return user.check_password(password_to_check)
 
@@ -116,11 +119,11 @@ class User:
 
     def set_password(self, plain_password):
         if plain_password is None:
-            print('__password is set with None')
+            GGPrint.print('__password is set with None')
             self.__password = None
         else:
             self.__password = encrypt_password(plain_password)
-            print('__password is set to {} with encrypted plain_password: {}'.format(
+            GGPrint.print('__password is set to {} with encrypted plain_password: {}'.format(
                 self.__password[0] + '*' * 8 + self.__password[-1],
                 plain_password[0] + '*' * 8 + plain_password[-1]))
 
@@ -181,7 +184,7 @@ class User:
         _user_json['password'] = self.__password
         _user_json['last_signin_dt'] = self.last_signin_dt
         _user_json['session_id'] = self.session_id
-        # print('[dump]_user_json:{}'.format(_user_json))
+        # GGPrint.print('[dump]_user_json:{}'.format(_user_json))
         return _user_json
 
     def __str__(self):
@@ -191,7 +194,7 @@ class User:
 
     def create_user_id(self):
         _time = '0000000000' + str(int(time.time()) - 1546300800)  # time from 2019/01/01
-        # print(_time)
+        # GGPrint.print(_time)
         hash = _generate_sha256_hash(np.random.rand())
         src_str = '{}{}'.format(str(_time)[-8:], hash[:2])
         return src_str

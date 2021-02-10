@@ -1,4 +1,7 @@
 import json
+from ggutils.gg_verbosity import GGVerbosePrinting
+
+GGPrint = GGVerbosePrinting(2)
 
 
 # default_setting =
@@ -47,11 +50,11 @@ class GGSetting:
 
 
 def test_read_setting_from_file():
-    print('##### test_read_setting_from_file')
+    GGPrint.print('##### test_read_setting_from_file')
     setting = GGSetting()
     admin_user_id = setting.get('admin_user_id')
     jwt_secret_key_path = setting.get('jwt_secret_key_path')
-    print('admin_user_id:{}, jwt_secret_key:{}'.format(admin_user_id, jwt_secret_key_path))
+    GGPrint.print('admin_user_id:{}, jwt_secret_key:{}'.format(admin_user_id, jwt_secret_key_path))
 
     assert admin_user_id == "User_XXX"
     assert jwt_secret_key_path == "/usr/local/etc/vendor/gg/jwt_secret.key"

@@ -1220,7 +1220,7 @@ class TwoDimCNNModel(OneDimCNNModel):
 
         with tf.name_scope('model/'):
             self.y = output_middle_layer
-            GGPrint.print('y.shape:{} {}'.format( self.y.shape))
+            GGPrint.print('y.shape:{}'.format( self.y.shape))
 
             GGPrint.print('self.model_type : {}'.format( self.model_type))
 

@@ -4,6 +4,9 @@ import pandas as pd
 
 from collections import defaultdict
 from tensorboard.backend.event_processing.event_accumulator import EventAccumulator
+from ggutils.gg_verbosity import GGVerbosePrinting
+
+GGPrint = GGVerbosePrinting(2)
 
 
 def tabulate_events(dir_path):
@@ -37,8 +40,8 @@ def to_csv(log_dir_path, csv_dir_path):
     np_values = np.array(values)
     csv_columns = ['step', 'wall_time']
     csv_columns.extend(dirs)
-    print('extend', ['step', 'wall_time'].extend(dirs))
-    print('csv_columns', csv_columns)
+    GGPrint.print('extend', ['step', 'wall_time'].extend(dirs))
+    GGPrint.print('csv_columns', csv_columns)
 
     for index, tag in enumerate(tags):
         # df = pd.DataFrame(np_values[index], index=steps, columns=dirs)

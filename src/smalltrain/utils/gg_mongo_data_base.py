@@ -5,6 +5,9 @@ import traceback
 import hashlib
 
 from smalltrain.utils.gg_setting import GGSetting
+from ggutils.gg_verbosity import GGVerbosePrinting
+
+GGPrint = GGVerbosePrinting(2)
 
 
 class Singleton:
@@ -70,7 +73,7 @@ class GGMongoDataBase:
             _collection = self._db_ins[group_key]
             _cr = _collection.find()
             # return _cr.sort().toArray()
-            print('group_key:{}, keys:{}'.format(group_key, sorted(list(_cr))))
+            GGPrint.print('group_key:{}, keys:{}'.format(group_key, sorted(list(_cr))))
             return sorted(list(_cr))
 
         ret_list = []
@@ -84,7 +87,7 @@ class GGMongoDataBase:
             _key_list = list(_cr)
             ret_list.extend(_key_list)
 
-        print('pattern:{}, keys:{}'.format(pattern, sorted(ret_list)))
+        GGPrint.print('pattern:{}, keys:{}'.format(pattern, sorted(ret_list)))
         return sorted(ret_list)
 
     def read(self, key, key_hashing=None):
@@ -110,7 +113,7 @@ class GGMongoDataBase:
         try:
             _cr = _collection.find({'_id': key})
             read_ojb_list = list(_cr)
-            print('[{}]read_ojb_list:{}'.format(PREFIX, read_ojb_list))
+            GGPrint.print('[{}]read_ojb_list:{}'.format(PREFIX, read_ojb_list))
             assert len(read_ojb_list) < 2
             if len(read_ojb_list) == 1: return read_ojb_list[0]['value']
             return None
@@ -137,7 +140,7 @@ class GGMongoDataBase:
 
     def convert_key_with_key_hashing(self, key, key_hashing):
         if key_hashing is not None:
-            print('No need to set key_hashing in MongoDB')
+            GGPrint.print('No need to set key_hashing in MongoDB')
             return key
         if key is None: return key
         if key_hashing is not None: key_hashing = self._key_hashing
@@ -151,7 +154,7 @@ class GGMongoDataBase:
 
     def save(self):
         warnings_message = '[save] is not ready to use'
-        print(warnings_message)
+        GGPrint.print(warnings_message)
         return
 
 class TimeoutError(Exception):
@@ -171,7 +174,7 @@ def test_read():
     group_key = 'TestUser'
     key = '1234567890'
     value = db.read_with_group_key(group_key, key)
-    print('[test_read]{}'.format(value))
+    GGPrint.print('[test_read]{}'.format(value))
 
 
 def test_update():
@@ -184,7 +187,7 @@ def test_update():
     value['name'] = 'TestUserName'
     value['email'] = 'test@geek-guild.jp'
     db.update_with_group_key(group_key, key, value)
-    print('[test_update]{}'.format('DOne'))
+    GGPrint.print('[test_update]{}'.format('DOne'))
 
 
 def test_keys():
@@ -199,21 +202,21 @@ def test_keys():
     start = time.time()
     group_key = 'TestUser'
     keys = db.keys(group_key=group_key)
-    print('========== read with group_key:{} keys:{} in {} sec'.format(group_key, keys, time.time() - start))
+    GGPrint.print('========== read with group_key:{} keys:{} in {} sec'.format(group_key, keys, time.time() - start))
 
     for key in keys:
         value = db.read(key)
-        print('DONE read key:{}, value:{}'.format(key, value))
+        GGPrint.print('DONE read key:{}, value:{}'.format(key, value))
         # db.delete_with_group_key(group_key, key)
 
     pattern = '*se*'
     start = time.time()
     keys = db.keys(pattern=pattern)
-    print('========== read with pattern:{} keys:{} in {} sec'.format(pattern, keys, time.time() - start))
+    GGPrint.print('========== read with pattern:{} keys:{} in {} sec'.format(pattern, keys, time.time() - start))
 
     for key in keys:
         value = db.read(key)
-        print('DONE read key:{}, value:{}'.format(key, value))
+        GGPrint.print('DONE read key:{}, value:{}'.format(key, value))
         # db.delete(key)
         # db.delete_with_group_key('TestUser', key)
 
@@ -222,7 +225,7 @@ def _test():
     db = GGMongoDataBase.Instance()
 
     for collection in db._db_ins.collection_names():
-        print('find collection:'.format(collection))
+        GGPrint.print('find collection:'.format(collection))
 
     # if having error below, check port setting
     # pymongo.errors.ServerSelectionTimeoutError: localhost:27017: [Errno 61] Connection refused
