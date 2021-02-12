@@ -254,8 +254,8 @@ class IMGDataSet(GGDataSet):
 
         each_data_set_proc_start_time = time.time()
         for _data_set_index, _index in enumerate(self.df_data_set_def.index):
-            GGPrint.print('---------- _data_set_index:{} / data_set size:{} ----------'.format(_data_set_index, len(self.df_data_set_def)))
-            GGPrint.print('each_data_set_proc_time:{}'.format(time.time() - each_data_set_proc_start_time))
+            GGPrint.print('---------- _data_set_index:{} / data_set size:{} ----------'.format(_data_set_index, len(self.df_data_set_def)), 0)
+            GGPrint.print('each_data_set_proc_time:{}'.format(time.time() - each_data_set_proc_start_time), 0)
             each_data_set_proc_start_time = time.time()
             reset_time = time.time()
 
@@ -263,24 +263,24 @@ class IMGDataSet(GGDataSet):
 
             data_set_file = _series['file_path']
             data_set_id = _series['data_set_id']
-            GGPrint.print('data_set_file:{}'.format(data_set_file))
-            GGPrint.print('data_set_id:{}'.format(data_set_id))
+            GGPrint.print('data_set_file:{}'.format(data_set_file), 0)
+            GGPrint.print('data_set_id:{}'.format(data_set_id), 0)
 
-            GGPrint.print('data_set_file is None:{}'.format(data_set_file is None))
-            GGPrint.print('data_set_file is np.nan:{}'.format(data_set_file is np.nan))
+            GGPrint.print('data_set_file is None:{}'.format(data_set_file is None), 0)
+            GGPrint.print('data_set_file is np.nan:{}'.format(data_set_file is np.nan), 0)
             if data_set_file is None or data_set_file is np.nan:
-                GGPrint.print('data_set_file set with data_set_id:{}'.format(data_set_id))
+                GGPrint.print('data_set_file set with data_set_id:{}'.format(data_set_id), 0)
                 data_set_file = data_set_id
 
             label_in_use = None
             label_v = None
             if 'label' in self.output_data_names:
                 labels = [_series['label'], _series['sub_label']]
-                GGPrint.print('labels:{}'.format(labels))
+                GGPrint.print('labels:{}'.format(labels), 0)
 
                 label_in_use = self.get_label_in_use(labels)
 
-                GGPrint.print('label_in_use:{}'.format(label_in_use))
+                GGPrint.print('label_in_use:{}'.format(label_in_use), 0)
 
 
                 _label_index = np.where(self.target_label_in_use == label_in_use)

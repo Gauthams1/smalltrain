@@ -1,6 +1,6 @@
 {
     "train_id": "IR_2D_CNN_V2_l49-c64_TUTORIAL-DEBUG-WITH-SMALLDATASET-20200708-TRAIN",
-    "### COMMENT ###": "tutorial training CIFAR-100 with small data set",
+    "### COMMENT ###": "tutorial training CIFAR-100 with large data set",
     "debug_mode": true,
 
     "status": "",
@@ -56,8 +56,8 @@
     "max_data_per_ts": 1,
 
     "data_dir_path": "/var/data/cifar-100-image/",
-    "data_set_def_path": "/var/data/cifar-100-image/data_set_def/train_cifar100_classification_small.csv",
-    "cache_data_set_id": "train_cifar100_classification_small",
+    "data_set_def_path": "/var/data/cifar-100-image-fine/data_set_def/train_cifar100_classification.csv",
+    "cache_data_set_id": "train_cifar100_classification",
     "##### memo": "If cache_data_set_id is None, then set with train_id",
     "refresh_cache_data_set": false,
 

@@ -15,7 +15,7 @@ CIFAR_100_URL = 'https://www.cs.toronto.edu/~kriz/cifar-100-python.tar.gz'
 ROOT_DIR_PATH = '/var/data/'
 WORK_DIR_PATH = os.path.join(ROOT_DIR_PATH, 'work')
 SRC_DATA_DIR = os.path.join(ROOT_DIR_PATH, 'cifar-100-python')
-DIST_DATA_DIR = os.path.join(ROOT_DIR_PATH, 'cifar-100-image')
+DIST_DATA_DIR = os.path.join(ROOT_DIR_PATH, 'cifar-100-image-fine')
 
 '''
 1. Downloads cifar10 data from
@@ -134,7 +134,7 @@ if __name__ == '__main__':
         image_data_set = unpickle(os.path.join(SRC_DATA_DIR, data_batch))
 
         print(image_data_set.keys())
-        labels = np.array(image_data_set[b'coarse_labels'])
+        labels = np.array(image_data_set[b'fine_labels'])
         images = image_data_set[b'data'].reshape(-1, 3, 32, 32).transpose(0,2,3,1).astype('uint8')
 
         for i, image_array in enumerate(images):
